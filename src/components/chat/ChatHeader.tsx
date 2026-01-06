@@ -1,0 +1,69 @@
+import { useAuth } from '@/contexts/AuthContext';
+import { Conversation } from '@/hooks/useConversations';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Users, ArrowLeft } from 'lucide-react';
+
+interface ChatHeaderProps {
+  conversation: Conversation | null;
+  onBack?: () => void;
+}
+
+export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
+  const { user } = useAuth();
+
+  if (!conversation) {
+    return (
+      <div className="h-16 border-b border-border bg-card flex items-center justify-center">
+        <p className="text-muted-foreground">Select a conversation</p>
+      </div>
+    );
+  }
+
+  const getConversationName = () => {
+    if (conversation.is_group && conversation.name) return conversation.name;
+    const otherParticipant = conversation.participants.find((p) => p.user_id !== user?.id);
+    return otherParticipant?.username || 'Unknown';
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  return (
+    <div className="h-16 border-b border-border bg-card px-4 flex items-center gap-3">
+      {onBack && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onBack}
+          className="md:hidden text-foreground"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      )}
+      <Avatar className="h-10 w-10 bg-secondary">
+        <AvatarFallback className="bg-secondary text-secondary-foreground">
+          {conversation.is_group ? (
+            <Users className="h-5 w-5" />
+          ) : (
+            getInitials(getConversationName())
+          )}
+        </AvatarFallback>
+      </Avatar>
+      <div>
+        <h3 className="font-semibold text-foreground">{getConversationName()}</h3>
+        {conversation.is_group && (
+          <p className="text-xs text-muted-foreground">
+            {conversation.participants.length} members
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
