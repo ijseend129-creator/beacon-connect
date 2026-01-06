@@ -8,6 +8,9 @@ export interface Message {
   sender_id: string;
   content: string;
   created_at: string;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_type?: string | null;
   sender?: {
     username: string;
     avatar_url: string | null;
@@ -35,6 +38,9 @@ export function useMessages(conversationId: string | null) {
           sender_id,
           content,
           created_at,
+          file_url,
+          file_name,
+          file_type,
           profiles!inner(username, avatar_url)
         `)
         .eq('conversation_id', conversationId)
@@ -49,6 +55,9 @@ export function useMessages(conversationId: string | null) {
           sender_id: msg.sender_id,
           content: msg.content,
           created_at: msg.created_at,
+          file_url: msg.file_url,
+          file_name: msg.file_name,
+          file_type: msg.file_type,
           sender: {
             username: msg.profiles.username,
             avatar_url: msg.profiles.avatar_url,
@@ -62,16 +71,48 @@ export function useMessages(conversationId: string | null) {
     }
   };
 
-  const sendMessage = async (content: string) => {
-    if (!conversationId || !user || !content.trim()) return null;
+  const uploadFile = async (file: File): Promise<{ url: string; name: string; type: string } | null> => {
+    if (!user) return null;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chat-attachments')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error('Error uploading file:', uploadError);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('chat-attachments')
+      .getPublicUrl(fileName);
+
+    return { url: publicUrl, name: file.name, type: file.type };
+  };
+
+  const sendMessage = async (content: string, file?: File) => {
+    if (!conversationId || !user || (!content.trim() && !file)) return null;
 
     try {
+      let fileData: { url: string; name: string; type: string } | null = null;
+      
+      if (file) {
+        fileData = await uploadFile(file);
+        if (!fileData) return null;
+      }
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          content: content.trim(),
+          content: content.trim() || (fileData ? fileData.name : ''),
+          file_url: fileData?.url,
+          file_name: fileData?.name,
+          file_type: fileData?.type,
         })
         .select()
         .single();
@@ -123,6 +164,9 @@ export function useMessages(conversationId: string | null) {
             sender_id: payload.new.sender_id,
             content: payload.new.content,
             created_at: payload.new.created_at,
+            file_url: payload.new.file_url,
+            file_name: payload.new.file_name,
+            file_type: payload.new.file_type,
             sender: profile || undefined,
           };
 

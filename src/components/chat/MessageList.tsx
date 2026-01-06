@@ -4,6 +4,7 @@ import { Message } from '@/hooks/useMessages';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
+import { FileText, Download } from 'lucide-react';
 
 interface MessageListProps {
   messages: Message[];
@@ -87,7 +88,33 @@ export function MessageList({ messages, loading }: MessageListProps) {
                       : 'message-bubble-received'
                   }`}
                 >
-                  <p className="break-words">{message.content}</p>
+                  {message.file_url && message.file_type?.startsWith('image/') && (
+                    <a href={message.file_url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={message.file_url}
+                        alt={message.file_name || 'Image'}
+                        className="max-w-[280px] max-h-[200px] rounded-lg mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      />
+                    </a>
+                  )}
+                  {message.file_url && !message.file_type?.startsWith('image/') && (
+                    <a
+                      href={message.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2 bg-background/50 rounded-lg mb-2 hover:bg-background/70 transition-colors"
+                    >
+                      <FileText className="h-8 w-8 text-primary" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{message.file_name}</p>
+                        <p className="text-xs text-muted-foreground">Click to download</p>
+                      </div>
+                      <Download className="h-4 w-4 text-muted-foreground" />
+                    </a>
+                  )}
+                  {message.content && (!message.file_url || message.content !== message.file_name) && (
+                    <p className="break-words">{message.content}</p>
+                  )}
                 </div>
                 <p
                   className={`text-xs text-muted-foreground mt-1 ${
