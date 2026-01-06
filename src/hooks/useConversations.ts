@@ -100,19 +100,32 @@ export function useConversations() {
 
       if (convError) throw convError;
 
-      // Add creator as participant
-      const allParticipants = [user.id, ...participantIds.filter(id => id !== user.id)];
-      
-      const { error: partError } = await supabase
+      // Add creator as participant (creator joins immediately)
+      const { error: creatorError } = await supabase
         .from('conversation_participants')
-        .insert(
-          allParticipants.map((userId) => ({
-            conversation_id: conv.id,
-            user_id: userId,
-          }))
-        );
+        .insert([{
+          conversation_id: conv.id,
+          user_id: user.id,
+        }]);
 
-      if (partError) throw partError;
+      if (creatorError) throw creatorError;
+
+      // Send invites to other users (they need to accept)
+      const otherParticipants = participantIds.filter(id => id !== user.id);
+      
+      if (otherParticipants.length > 0) {
+        const { error: inviteError } = await supabase
+          .from('conversation_invites')
+          .insert(
+            otherParticipants.map((userId) => ({
+              conversation_id: conv.id,
+              inviter_id: user.id,
+              invitee_id: userId,
+            }))
+          );
+
+        if (inviteError) throw inviteError;
+      }
 
       await fetchConversations();
       return conv.id;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConversations } from '@/hooks/useConversations';
 import { useMessages } from '@/hooks/useMessages';
+import { useConversationInvites } from '@/hooks/useConversationInvites';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
@@ -10,7 +11,9 @@ import { ChatHeader } from '@/components/chat/ChatHeader';
 import { NewChatDialog } from '@/components/chat/NewChatDialog';
 import { UserMenu } from '@/components/chat/UserMenu';
 import { BeaconAIChat } from '@/components/chat/BeaconAIChat';
+import { InviteList } from '@/components/chat/InviteList';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Chat() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -21,8 +24,10 @@ export default function Chat() {
 
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { conversations, loading: convsLoading, createConversation, fetchConversations } = useConversations();
   const { messages, loading: msgsLoading, sendMessage } = useMessages(selectedConversationId);
+  const { invites, acceptInvite, declineInvite } = useConversationInvites();
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId) || null;
 
@@ -77,6 +82,18 @@ export default function Chat() {
     if (convId) {
       setSelectedConversationId(convId);
       await fetchConversations();
+      toast({
+        title: 'Invite Sent',
+        description: 'Waiting for the user to accept your invite.',
+      });
+    }
+  };
+
+  const handleAcceptInvite = async (inviteId: string) => {
+    const convId = await acceptInvite(inviteId);
+    if (convId) {
+      await fetchConversations();
+      setSelectedConversationId(convId as string);
     }
   };
 
@@ -110,6 +127,11 @@ export default function Chat() {
         } md:flex flex-col w-full md:w-80 lg:w-96 flex-shrink-0`}
       >
         <UserMenu username={username} />
+        <InviteList
+          invites={invites}
+          onAccept={handleAcceptInvite}
+          onDecline={declineInvite}
+        />
         <ConversationList
           conversations={conversations}
           selectedId={selectedConversationId}

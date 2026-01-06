@@ -163,7 +163,7 @@ export function NewChatDialog({ open, onClose, onCreateChat }: NewChatDialogProp
             }
             className="w-full bg-primary text-primary-foreground hover:bg-beacon-lime-glow"
           >
-            {creating ? 'Creating...' : 'Start Conversation'}
+            {creating ? 'Sending Invite...' : 'Send Invite'}
           </Button>
         </div>
       </DialogContent>
