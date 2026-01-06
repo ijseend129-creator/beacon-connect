@@ -2,7 +2,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Conversation } from '@/hooks/useConversations';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Users, ArrowLeft } from 'lucide-react';
+import { Users, ArrowLeft, Phone } from 'lucide-react';
+import { useCall } from '@/contexts/CallContext';
 
 interface ChatHeaderProps {
   conversation: Conversation | null;
@@ -11,6 +12,7 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
   const { user } = useAuth();
+  const { startCall, callStatus } = useCall();
 
   if (!conversation) {
     return (
@@ -35,6 +37,12 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
       .slice(0, 2);
   };
 
+  const handleCall = () => {
+    if (callStatus === 'idle') {
+      startCall(conversation.id);
+    }
+  };
+
   return (
     <div className="h-16 border-b border-border bg-card px-4 flex items-center gap-3">
       {onBack && (
@@ -56,7 +64,7 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
           )}
         </AvatarFallback>
       </Avatar>
-      <div>
+      <div className="flex-1">
         <h3 className="font-semibold text-foreground">{getConversationName()}</h3>
         {conversation.is_group && (
           <p className="text-xs text-muted-foreground">
@@ -64,6 +72,15 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
           </p>
         )}
       </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleCall}
+        disabled={callStatus !== 'idle'}
+        className="text-primary hover:bg-primary/10"
+      >
+        <Phone className="h-5 w-5" />
+      </Button>
     </div>
   );
 }
