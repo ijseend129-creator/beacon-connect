@@ -1,24 +1,66 @@
-import { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send } from 'lucide-react';
+import { Send, Paperclip, X, Image, FileText } from 'lucide-react';
 
 interface MessageInputProps {
-  onSend: (content: string) => Promise<void>;
+  onSend: (content: string, file?: File) => Promise<void>;
   disabled?: boolean;
 }
+
+const ALLOWED_TYPES = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'application/pdf', 'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain', 'application/zip'
+];
 
 export function MessageInput({ onSend, disabled }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      alert('File type not supported');
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      alert('File size must be under 50MB');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setPreview(null);
+    }
+  };
+
+  const clearFile = () => {
+    setSelectedFile(null);
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSend = async () => {
-    if (!message.trim() || sending) return;
+    if ((!message.trim() && !selectedFile) || sending) return;
 
     setSending(true);
     try {
-      await onSend(message);
+      await onSend(message, selectedFile || undefined);
       setMessage('');
+      clearFile();
     } finally {
       setSending(false);
     }
@@ -31,9 +73,47 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
     }
   };
 
+  const isImage = selectedFile?.type.startsWith('image/');
+
   return (
     <div className="p-4 border-t border-border bg-card">
+      {selectedFile && (
+        <div className="max-w-3xl mx-auto mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+            {preview ? (
+              <img src={preview} alt="Preview" className="h-12 w-12 object-cover rounded" />
+            ) : (
+              <FileText className="h-6 w-6 text-muted-foreground" />
+            )}
+            <span className="text-sm truncate max-w-[200px]">{selectedFile.name}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={clearFile}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex items-end gap-2 max-w-3xl mx-auto">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ALLOWED_TYPES.join(',')}
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-11 w-11 text-muted-foreground hover:text-foreground"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled || sending}
+        >
+          <Paperclip className="h-5 w-5" />
+        </Button>
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -45,7 +125,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
         />
         <Button
           onClick={handleSend}
-          disabled={!message.trim() || sending || disabled}
+          disabled={(!message.trim() && !selectedFile) || sending || disabled}
           className="h-11 w-11 p-0 bg-primary text-primary-foreground hover:bg-beacon-lime-glow beacon-glow-sm transition-all duration-300"
         >
           <Send className="h-5 w-5" />
