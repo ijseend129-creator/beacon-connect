@@ -4,7 +4,7 @@ import { Conversation } from '@/hooks/useConversations';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Users, MessageCircle } from 'lucide-react';
+import { Plus, Users, MessageCircle, Bot, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ConversationListProps {
@@ -12,6 +12,8 @@ interface ConversationListProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onNewChat: () => void;
+  onSelectAI: () => void;
+  isAISelected: boolean;
 }
 
 export function ConversationList({
@@ -19,6 +21,8 @@ export function ConversationList({
   selectedId,
   onSelect,
   onNewChat,
+  onSelectAI,
+  isAISelected,
 }: ConversationListProps) {
   const { user } = useAuth();
 
@@ -59,6 +63,32 @@ export function ConversationList({
       {/* Conversation list */}
       <ScrollArea className="flex-1 scrollbar-thin">
         <div className="p-2 space-y-1">
+          {/* Beacon AI Button */}
+          <button
+            onClick={onSelectAI}
+            className={`w-full p-3 rounded-lg flex items-center gap-3 transition-all duration-200 ${
+              isAISelected
+                ? 'bg-sidebar-accent border-l-2 border-primary'
+                : 'hover:bg-sidebar-accent/50'
+            }`}
+          >
+            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Bot className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div className="flex-1 text-left overflow-hidden">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sidebar-foreground">Beacon AI</span>
+                <Sparkles className="h-3 w-3 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">Your AI assistant</p>
+            </div>
+          </button>
+
+          {/* Divider */}
+          <div className="py-2">
+            <div className="h-px bg-sidebar-border" />
+          </div>
+
           {conversations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />

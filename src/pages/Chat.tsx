@@ -9,6 +9,7 @@ import { MessageInput } from '@/components/chat/MessageInput';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { NewChatDialog } from '@/components/chat/NewChatDialog';
 import { UserMenu } from '@/components/chat/UserMenu';
+import { BeaconAIChat } from '@/components/chat/BeaconAIChat';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Chat() {
@@ -16,6 +17,7 @@ export default function Chat() {
   const [showNewChat, setShowNewChat] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [username, setUsername] = useState<string>();
+  const [showBeaconAI, setShowBeaconAI] = useState(false);
 
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -50,12 +52,25 @@ export default function Chat() {
     }
   }, [user, authLoading, navigate]);
 
-  // On mobile, hide sidebar when conversation is selected
+  // On mobile, hide sidebar when conversation or AI is selected
   useEffect(() => {
-    if (selectedConversationId && window.innerWidth < 768) {
+    if ((selectedConversationId || showBeaconAI) && window.innerWidth < 768) {
       setShowSidebar(false);
     }
-  }, [selectedConversationId]);
+  }, [selectedConversationId, showBeaconAI]);
+
+  const handleSelectAI = () => {
+    setSelectedConversationId(null);
+    setShowBeaconAI(true);
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
+  };
+
+  const handleSelectConversation = (id: string) => {
+    setShowBeaconAI(false);
+    setSelectedConversationId(id);
+  };
 
   const handleCreateChat = async (userIds: string[], name?: string, isGroup?: boolean) => {
     const convId = await createConversation(userIds, name, isGroup);
@@ -73,6 +88,7 @@ export default function Chat() {
   const handleBack = () => {
     setShowSidebar(true);
     setSelectedConversationId(null);
+    setShowBeaconAI(false);
   };
 
   if (authLoading) {
@@ -97,8 +113,10 @@ export default function Chat() {
         <ConversationList
           conversations={conversations}
           selectedId={selectedConversationId}
-          onSelect={setSelectedConversationId}
+          onSelect={handleSelectConversation}
           onNewChat={() => setShowNewChat(true)}
+          onSelectAI={handleSelectAI}
+          isAISelected={showBeaconAI}
         />
       </div>
 
@@ -108,23 +126,29 @@ export default function Chat() {
           showSidebar ? 'hidden' : 'flex'
         } md:flex flex-1 flex-col min-w-0`}
       >
-        <ChatHeader
-          conversation={selectedConversation}
-          onBack={handleBack}
-        />
-        
-        {selectedConversation ? (
-          <>
-            <MessageList messages={messages} loading={msgsLoading} />
-            <MessageInput onSend={handleSendMessage} />
-          </>
+        {showBeaconAI ? (
+          <BeaconAIChat onBack={handleBack} />
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <p className="text-lg mb-2">Welcome to Beacon</p>
-              <p className="text-sm">Select a conversation or start a new one</p>
-            </div>
-          </div>
+          <>
+            <ChatHeader
+              conversation={selectedConversation}
+              onBack={handleBack}
+            />
+            
+            {selectedConversation ? (
+              <>
+                <MessageList messages={messages} loading={msgsLoading} />
+                <MessageInput onSend={handleSendMessage} />
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <p className="text-lg mb-2">Welcome to Beacon</p>
+                  <p className="text-sm">Select a conversation or start a new one</p>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
