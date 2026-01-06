@@ -65,8 +65,8 @@ export default function Chat() {
     }
   };
 
-  const handleSendMessage = async (content: string) => {
-    await sendMessage(content);
+  const handleSendMessage = async (content: string, file?: File) => {
+    await sendMessage(content, file);
     await fetchConversations(); // Refresh to update last message
   };
 
