@@ -20,6 +20,7 @@ export default function Chat() {
   const [showNewChat, setShowNewChat] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [username, setUsername] = useState<string>();
+  const [avatarUrl, setAvatarUrl] = useState<string>();
   const [showBeaconAI, setShowBeaconAI] = useState(false);
 
   const { user, loading: authLoading } = useAuth();
@@ -38,17 +39,23 @@ export default function Chat() {
       
       const { data } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, avatar_url')
         .eq('id', user.id)
         .single();
       
       if (data) {
         setUsername(data.username);
+        setAvatarUrl(data.avatar_url || undefined);
       }
     };
 
     fetchProfile();
   }, [user]);
+
+  const handleProfileUpdate = (newUsername: string, newAvatarUrl: string | null) => {
+    setUsername(newUsername);
+    setAvatarUrl(newAvatarUrl || undefined);
+  };
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -126,7 +133,7 @@ export default function Chat() {
           showSidebar ? 'flex' : 'hidden'
         } md:flex flex-col w-full md:w-80 lg:w-96 flex-shrink-0`}
       >
-        <UserMenu username={username} />
+        <UserMenu username={username} avatarUrl={avatarUrl} onProfileUpdate={handleProfileUpdate} />
         <InviteList
           invites={invites}
           onAccept={handleAcceptInvite}
