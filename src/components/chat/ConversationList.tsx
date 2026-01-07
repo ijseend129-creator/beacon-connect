@@ -119,12 +119,17 @@ export function ConversationList({
                 >
                   <div className="relative">
                     <Avatar className="h-12 w-12 bg-secondary">
-                      {!conv.is_group && otherParticipant?.avatar_url && (
+                      {conv.is_group && conv.avatar_url ? (
+                        <AvatarImage 
+                          src={conv.avatar_url} 
+                          alt={conv.name || 'Groep'} 
+                        />
+                      ) : !conv.is_group && otherParticipant?.avatar_url ? (
                         <AvatarImage 
                           src={otherParticipant.avatar_url} 
                           alt={otherParticipant.username} 
                         />
-                      )}
+                      ) : null}
                       <AvatarFallback className="bg-secondary text-secondary-foreground">
                         {conv.is_group ? (
                           <Users className="h-5 w-5" />
