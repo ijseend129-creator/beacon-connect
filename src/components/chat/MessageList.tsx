@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Message, MessageStatus } from '@/hooks/useMessages';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, isToday, isYesterday } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -109,6 +109,12 @@ export function MessageList({ messages, loading, onMessagesViewed }: MessageList
                 <div className="w-8">
                   {showAvatar && (
                     <Avatar className="h-8 w-8 bg-secondary">
+                      {message.sender?.avatar_url && (
+                        <AvatarImage 
+                          src={message.sender.avatar_url} 
+                          alt={message.sender?.username || 'Gebruiker'} 
+                        />
+                      )}
                       <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
                         {getInitials(message.sender?.username || 'U')}
                       </AvatarFallback>

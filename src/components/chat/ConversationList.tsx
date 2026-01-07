@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Conversation } from '@/hooks/useConversations';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,10 @@ export function ConversationList({
     // For 1:1 chats, show the other person's name
     const otherParticipant = conv.participants.find((p) => p.user_id !== user?.id);
     return otherParticipant?.username || 'Onbekend';
+  };
+
+  const getOtherParticipant = (conv: Conversation) => {
+    return conv.participants.find((p) => p.user_id !== user?.id);
   };
 
   const getInitials = (name: string) => {
@@ -101,6 +105,7 @@ export function ConversationList({
           ) : (
             conversations.map((conv) => {
               const unreadCount = unreadCounts[conv.id] || 0;
+              const otherParticipant = getOtherParticipant(conv);
               
               return (
                 <button
@@ -114,6 +119,12 @@ export function ConversationList({
                 >
                   <div className="relative">
                     <Avatar className="h-12 w-12 bg-secondary">
+                      {!conv.is_group && otherParticipant?.avatar_url && (
+                        <AvatarImage 
+                          src={otherParticipant.avatar_url} 
+                          alt={otherParticipant.username} 
+                        />
+                      )}
                       <AvatarFallback className="bg-secondary text-secondary-foreground">
                         {conv.is_group ? (
                           <Users className="h-5 w-5" />
