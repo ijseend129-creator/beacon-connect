@@ -175,7 +175,7 @@ export default function Chat() {
                   <p className="text-lg mb-2">Welcome to Beacon</p>
                   <p className="text-sm mb-6">Select a conversation or start a new one</p>
                   <a
-                    href="https://gofund.me/04be4371d"
+                    href="https://www.gofundme.com/f/hou-beacon-gratis"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-xs text-muted-foreground/60 hover:text-primary transition-colors"
