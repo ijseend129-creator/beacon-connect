@@ -6,6 +6,7 @@ export interface Conversation {
   id: string;
   name: string | null;
   is_group: boolean;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
   participants: {
@@ -36,6 +37,7 @@ export function useConversations() {
           id,
           name,
           is_group,
+          avatar_url,
           created_at,
           updated_at
         `)

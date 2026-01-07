@@ -199,6 +199,7 @@ export default function Chat() {
             <ChatHeader
               conversation={selectedConversation}
               onBack={handleBack}
+              onConversationUpdate={fetchConversations}
             />
             
             {selectedConversation ? (
