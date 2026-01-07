@@ -27,12 +27,12 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
     if (!file) return;
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      alert('File type not supported');
+      alert('Bestandstype niet ondersteund');
       return;
     }
 
     if (file.size > 50 * 1024 * 1024) {
-      alert('File size must be under 50MB');
+      alert('Bestand moet kleiner zijn dan 50MB');
       return;
     }
 
@@ -118,7 +118,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder="Typ een bericht..."
           disabled={disabled || sending}
           className="min-h-[44px] max-h-[120px] resize-none bg-input border-border focus:ring-primary"
           rows={1}

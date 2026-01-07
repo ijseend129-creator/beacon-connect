@@ -52,8 +52,8 @@ export function ProfileSettingsDialog({
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
-        title: 'Invalid file type',
-        description: 'Please select an image file.',
+        title: 'Ongeldig bestandstype',
+        description: 'Selecteer een afbeelding.',
         variant: 'destructive',
       });
       return;
@@ -62,8 +62,8 @@ export function ProfileSettingsDialog({
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
-        title: 'File too large',
-        description: 'Please select an image under 2MB.',
+        title: 'Bestand te groot',
+        description: 'Selecteer een afbeelding kleiner dan 2MB.',
         variant: 'destructive',
       });
       return;
@@ -89,14 +89,14 @@ export function ProfileSettingsDialog({
       setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
       
       toast({
-        title: 'Avatar uploaded',
-        description: 'Click Save to apply changes.',
+        title: 'Avatar geüpload',
+        description: 'Klik op Opslaan om de wijzigingen toe te passen.',
       });
     } catch (error) {
       console.error('Error uploading avatar:', error);
       toast({
-        title: 'Upload failed',
-        description: 'Could not upload avatar. Please try again.',
+        title: 'Upload mislukt',
+        description: 'Kon avatar niet uploaden. Probeer opnieuw.',
         variant: 'destructive',
       });
     } finally {
@@ -123,16 +123,16 @@ export function ProfileSettingsDialog({
       onUpdate(username.trim() || user.email || '', avatarUrl || null);
       
       toast({
-        title: 'Profile updated',
-        description: 'Your profile has been saved.',
+        title: 'Profiel bijgewerkt',
+        description: 'Je profiel is opgeslagen.',
       });
       
       onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: 'Update failed',
-        description: 'Could not update profile. Please try again.',
+        title: 'Bijwerken mislukt',
+        description: 'Kon profiel niet bijwerken. Probeer opnieuw.',
         variant: 'destructive',
       });
     } finally {
@@ -144,7 +144,7 @@ export function ProfileSettingsDialog({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
+          <DialogTitle>Profiel bewerken</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -177,37 +177,37 @@ export function ProfileSettingsDialog({
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              Click to upload a profile picture
+              Klik om een profielfoto te uploaden
             </p>
           </div>
 
           {/* Username */}
           <div className="space-y-2">
-            <Label htmlFor="username">Display Name</Label>
+            <Label htmlFor="username">Weergavenaam</Label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your display name"
+              placeholder="Voer je weergavenaam in"
             />
             <p className="text-xs text-muted-foreground">
-              This is how your name will appear to others.
+              Dit is hoe je naam aan anderen wordt getoond.
             </p>
           </div>
         </div>
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Annuleren
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
+                Opslaan...
               </>
             ) : (
-              'Save'
+              'Opslaan'
             )}
           </Button>
         </div>

@@ -20,7 +20,7 @@ export function InviteList({ invites, onAccept, onDecline }: InviteListProps) {
     <div className="border-b border-sidebar-border">
       <div className="px-4 py-2 bg-primary/10">
         <h3 className="text-sm font-medium text-primary">
-          Pending Invites ({invites.length})
+          Openstaande uitnodigingen ({invites.length})
         </h3>
       </div>
       <ScrollArea className="max-h-48">
@@ -41,12 +41,12 @@ export function InviteList({ invites, onAccept, onDecline }: InviteListProps) {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {invite.inviter?.username || 'Someone'} invited you
+                  {invite.inviter?.username || 'Iemand'} heeft je uitgenodigd
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {invite.conversation?.is_group
-                    ? `to "${invite.conversation?.name || 'a group'}"`
-                    : 'to chat'}
+                    ? `voor "${invite.conversation?.name || 'een groep'}"`
+                    : 'om te chatten'}
                   {' · '}
                   {formatDistanceToNow(new Date(invite.created_at), { addSuffix: true })}
                 </p>

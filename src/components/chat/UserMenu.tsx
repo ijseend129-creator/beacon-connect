@@ -66,14 +66,14 @@ export function UserMenu({ username, avatarUrl, onProfileUpdate }: UserMenuProps
               className="cursor-pointer"
             >
               <Settings className="h-4 w-4 mr-2" />
-              Edit Profile
+              Profiel bewerken
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={signOut}
               className="text-destructive focus:text-destructive cursor-pointer"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sign out
+              Uitloggen
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

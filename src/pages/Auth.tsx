@@ -9,9 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
 const authSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  username: z.string().min(3, 'Username must be at least 3 characters').optional(),
+  email: z.string().email('Voer een geldig e-mailadres in'),
+  password: z.string().min(6, 'Wachtwoord moet minimaal 6 tekens zijn'),
+  username: z.string().min(3, 'Gebruikersnaam moet minimaal 3 tekens zijn').optional(),
 });
 
 export default function Auth() {
@@ -67,9 +67,9 @@ export default function Auth() {
         const { error } = await signIn(email, password);
         if (error) {
           toast({
-            title: 'Sign in failed',
+            title: 'Inloggen mislukt',
             description: error.message === 'Invalid login credentials' 
-              ? 'Invalid email or password. Please try again.'
+              ? 'Ongeldige e-mail of wachtwoord. Probeer opnieuw.'
               : error.message,
             variant: 'destructive',
           });
@@ -79,21 +79,21 @@ export default function Auth() {
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
-              title: 'Account exists',
-              description: 'This email is already registered. Please sign in instead.',
+              title: 'Account bestaat al',
+              description: 'Dit e-mailadres is al geregistreerd. Log in.',
               variant: 'destructive',
             });
           } else {
             toast({
-              title: 'Sign up failed',
+              title: 'Registratie mislukt',
               description: error.message,
               variant: 'destructive',
             });
           }
         } else {
           toast({
-            title: 'Welcome to Beacon!',
-            description: 'Your account has been created successfully.',
+            title: 'Welkom bij Beacon!',
+            description: 'Je account is succesvol aangemaakt.',
           });
         }
       }
@@ -112,7 +112,7 @@ export default function Auth() {
           </div>
           <h1 className="text-4xl font-bold text-foreground">Beacon</h1>
           <p className="text-muted-foreground">
-            {isLogin ? 'Welcome back! Sign in to continue.' : 'Create your account to get started.'}
+            {isLogin ? 'Welkom terug! Log in om verder te gaan.' : 'Maak een account aan om te beginnen.'}
           </p>
         </div>
 
@@ -120,13 +120,13 @@ export default function Auth() {
         <form onSubmit={handleSubmit} className="space-y-6 bg-card p-8 rounded-xl border border-border">
           {!isLogin && (
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Gebruikersnaam</Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Choose a username"
+                placeholder="Kies een gebruikersnaam"
                 className="bg-input border-border"
               />
               {errors.username && (
@@ -136,7 +136,7 @@ export default function Auth() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
               type="email"
@@ -151,7 +151,7 @@ export default function Auth() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Wachtwoord</Label>
             <Input
               id="password"
               type="password"
@@ -170,7 +170,7 @@ export default function Auth() {
             className="w-full bg-primary text-primary-foreground hover:bg-beacon-lime-glow beacon-glow-sm transition-all duration-300"
             disabled={loading}
           >
-            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+            {loading ? 'Even geduld...' : isLogin ? 'Inloggen' : 'Account aanmaken'}
           </Button>
         </form>
 
@@ -184,7 +184,7 @@ export default function Auth() {
             }}
             className="text-muted-foreground hover:text-primary transition-colors"
           >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            {isLogin ? "Heb je nog geen account? Registreren" : 'Heb je al een account? Inloggen'}
           </button>
         </div>
       </div>
