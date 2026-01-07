@@ -18,6 +18,7 @@ export function ChatHeader({ conversation, onBack, onConversationUpdate }: ChatH
   const { startCall, callStatus } = useCall();
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(conversation?.avatar_url || null);
+  const [displayName, setDisplayName] = useState<string | null>(conversation?.name || null);
 
   if (!conversation) {
     return (
@@ -28,7 +29,7 @@ export function ChatHeader({ conversation, onBack, onConversationUpdate }: ChatH
   }
 
   const getConversationName = () => {
-    if (conversation.is_group && conversation.name) return conversation.name;
+    if (conversation.is_group) return displayName || conversation.name || 'Groep';
     const otherParticipant = conversation.participants.find((p) => p.user_id !== user?.id);
     return otherParticipant?.username || 'Onbekend';
   };
@@ -58,6 +59,11 @@ export function ChatHeader({ conversation, onBack, onConversationUpdate }: ChatH
 
   const handleAvatarUpdate = (newUrl: string | null) => {
     setAvatarUrl(newUrl);
+    onConversationUpdate?.();
+  };
+
+  const handleNameUpdate = (newName: string) => {
+    setDisplayName(newName);
     onConversationUpdate?.();
   };
 
@@ -127,9 +133,10 @@ export function ChatHeader({ conversation, onBack, onConversationUpdate }: ChatH
           open={showAvatarDialog}
           onClose={() => setShowAvatarDialog(false)}
           conversationId={conversation.id}
-          conversationName={conversation.name || 'Groep'}
+          conversationName={displayName || conversation.name || 'Groep'}
           currentAvatarUrl={avatarUrl || conversation.avatar_url}
           onAvatarUpdate={handleAvatarUpdate}
+          onNameUpdate={handleNameUpdate}
         />
       )}
     </>
