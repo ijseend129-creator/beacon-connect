@@ -57,9 +57,12 @@ export function useUnreadCount() {
     fetchUnreadCounts();
   }, [user]);
 
-  // Subscribe to new messages
+  // Subscribe to new messages with debounce to prevent duplicate notifications
   useEffect(() => {
     if (!user) return;
+
+    let lastNotifiedId: string | null = null;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const channel = supabase
       .channel('unread-messages')
@@ -71,14 +74,28 @@ export function useUnreadCount() {
           table: 'messages',
         },
         (payload) => {
-          if (payload.new.sender_id !== user.id) {
-            fetchUnreadCounts();
+          // Skip if it's the user's own message or already notified
+          if (payload.new.sender_id === user.id || payload.new.id === lastNotifiedId) {
+            return;
           }
+          
+          lastNotifiedId = payload.new.id;
+          
+          // Debounce to prevent rapid successive updates
+          if (debounceTimer) {
+            clearTimeout(debounceTimer);
+          }
+          debounceTimer = setTimeout(() => {
+            fetchUnreadCounts();
+          }, 300);
         }
       )
       .subscribe();
 
     return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
       supabase.removeChannel(channel);
     };
   }, [user]);
