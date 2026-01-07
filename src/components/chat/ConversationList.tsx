@@ -139,6 +139,19 @@ export function ConversationList({
           )}
         </div>
       </ScrollArea>
+      
+      {/* Footer */}
+      <div className="p-3 border-t border-sidebar-border">
+        <a
+          href="https://gofund.me/04be4371d"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+        >
+          <span>♥</span>
+          <span>Support Beacon</span>
+        </a>
+      </div>
     </div>
   );
 }
