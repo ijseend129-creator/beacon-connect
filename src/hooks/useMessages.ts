@@ -137,7 +137,10 @@ export function useMessages(conversationId: string | null) {
     }
   };
 
+  // Reset messages and refetch when conversation changes
   useEffect(() => {
+    setMessages([]);
+    setLoading(true);
     fetchMessages();
   }, [conversationId]);
 
@@ -156,27 +159,42 @@ export function useMessages(conversationId: string | null) {
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          // Fetch the sender's profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, avatar_url')
-            .eq('id', payload.new.sender_id)
-            .single();
-
-          const newMessage: Message = {
-            id: payload.new.id,
-            conversation_id: payload.new.conversation_id,
-            sender_id: payload.new.sender_id,
-            content: payload.new.content,
-            created_at: payload.new.created_at,
-            status: (payload.new.status as MessageStatus) || 'sent',
-            file_url: payload.new.file_url,
-            file_name: payload.new.file_name,
-            file_type: payload.new.file_type,
-            sender: profile || undefined,
-          };
-
-          setMessages((prev) => [...prev, newMessage]);
+          // Check if message already exists to prevent duplicates
+          setMessages((prev) => {
+            if (prev.some(m => m.id === payload.new.id)) {
+              return prev;
+            }
+            
+            // Fetch sender profile and add message
+            supabase
+              .from('profiles')
+              .select('username, avatar_url')
+              .eq('id', payload.new.sender_id)
+              .single()
+              .then(({ data: profile }) => {
+                const newMessage: Message = {
+                  id: payload.new.id,
+                  conversation_id: payload.new.conversation_id,
+                  sender_id: payload.new.sender_id,
+                  content: payload.new.content,
+                  created_at: payload.new.created_at,
+                  status: (payload.new.status as MessageStatus) || 'sent',
+                  file_url: payload.new.file_url,
+                  file_name: payload.new.file_name,
+                  file_type: payload.new.file_type,
+                  sender: profile || undefined,
+                };
+                
+                setMessages((current) => {
+                  if (current.some(m => m.id === newMessage.id)) {
+                    return current;
+                  }
+                  return [...current, newMessage];
+                });
+              });
+            
+            return prev;
+          });
         }
       )
       .subscribe();
