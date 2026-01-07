@@ -173,7 +173,16 @@ export default function Chat() {
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
                   <p className="text-lg mb-2">Welcome to Beacon</p>
-                  <p className="text-sm">Select a conversation or start a new one</p>
+                  <p className="text-sm mb-6">Select a conversation or start a new one</p>
+                  <a
+                    href="https://gofund.me/04be4371d"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+                  >
+                    <span>♥</span>
+                    <span>Support Beacon</span>
+                  </a>
                 </div>
               </div>
             )}
