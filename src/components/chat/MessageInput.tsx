@@ -1,8 +1,9 @@
-import { useState, KeyboardEvent, useRef, useEffect } from 'react';
+import { useState, KeyboardEvent, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, X, FileText, WifiOff } from 'lucide-react';
+import { Send, Paperclip, X, FileText, WifiOff, Mic, Square } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 
 interface MessageInputProps {
   onSend: (content: string, file?: File) => Promise<void>;
@@ -15,7 +16,8 @@ const ALLOWED_TYPES = [
   'image/jpeg', 'image/png', 'image/gif', 'image/webp',
   'application/pdf', 'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/plain', 'application/zip'
+  'text/plain', 'application/zip',
+  'audio/webm', 'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/wav'
 ];
 
 export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageInputProps) {
@@ -25,6 +27,40 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const { isRecording, recordingTime, startRecording, stopRecording, cancelRecording } = useAudioRecorder();
+
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      await startRecording();
+    } catch (error) {
+      console.error('Could not start recording:', error);
+      alert('Kon microfoon niet openen. Controleer of je toestemming hebt gegeven.');
+    }
+  };
+
+  const handleStopRecording = async () => {
+    const blob = await stopRecording();
+    if (blob) {
+      const file = new File([blob], `spraakbericht-${Date.now()}.webm`, { type: 'audio/webm' });
+      setSending(true);
+      try {
+        await onSend('🎤 Spraakbericht', file);
+      } finally {
+        setSending(false);
+      }
+    }
+  };
+
+  const handleCancelRecording = () => {
+    cancelRecording();
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,33 +161,75 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
           onChange={handleFileSelect}
           className="hidden"
         />
-        <EmojiPicker onEmojiSelect={handleEmojiSelect} disabled={disabled || sending} />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-11 w-11 text-muted-foreground hover:text-foreground"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || sending}
-        >
-          <Paperclip className="h-5 w-5" />
-        </Button>
-        <Textarea
-          ref={textareaRef}
-          value={message}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Typ een bericht..."
-          disabled={disabled || sending}
-          className="min-h-[44px] max-h-[120px] resize-none bg-input border-border focus:ring-primary"
-          rows={1}
-        />
-        <Button
-          onClick={handleSend}
-          disabled={(!message.trim() && !selectedFile) || sending || disabled}
-          className="h-11 w-11 p-0 bg-primary text-primary-foreground hover:bg-beacon-lime-glow beacon-glow-sm transition-all duration-300"
-        >
-          <Send className="h-5 w-5" />
-        </Button>
+        
+        {isRecording ? (
+          // Recording mode
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={handleCancelRecording}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            
+            <div className="flex-1 flex items-center justify-center gap-3 h-11 px-4 bg-destructive/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-destructive animate-pulse" />
+              <span className="text-sm font-medium text-destructive">
+                Opnemen... {formatRecordingTime(recordingTime)}
+              </span>
+            </div>
+            
+            <Button
+              onClick={handleStopRecording}
+              className="h-11 w-11 p-0 bg-primary text-primary-foreground hover:bg-beacon-lime-glow beacon-glow-sm transition-all duration-300"
+            >
+              <Square className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          // Normal mode
+          <>
+            <EmojiPicker onEmojiSelect={handleEmojiSelect} disabled={disabled || sending} />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 text-muted-foreground hover:text-foreground"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || sending}
+            >
+              <Paperclip className="h-5 w-5" />
+            </Button>
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Typ een bericht..."
+              disabled={disabled || sending}
+              className="min-h-[44px] max-h-[120px] resize-none bg-input border-border focus:ring-primary"
+              rows={1}
+            />
+            {message.trim() || selectedFile ? (
+              <Button
+                onClick={handleSend}
+                disabled={(!message.trim() && !selectedFile) || sending || disabled}
+                className="h-11 w-11 p-0 bg-primary text-primary-foreground hover:bg-beacon-lime-glow beacon-glow-sm transition-all duration-300"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleStartRecording}
+                disabled={disabled || sending || isOffline}
+                className="h-11 w-11 p-0 bg-primary text-primary-foreground hover:bg-beacon-lime-glow beacon-glow-sm transition-all duration-300"
+              >
+                <Mic className="h-5 w-5" />
+              </Button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

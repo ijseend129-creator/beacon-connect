@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, isToday, isYesterday } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { FileText, Download, Check, CheckCheck } from 'lucide-react';
+import { AudioPlayer } from './AudioPlayer';
 
 interface MessageListProps {
   messages: Message[];
@@ -145,7 +146,12 @@ export function MessageList({ messages, loading, onMessagesViewed }: MessageList
                       />
                     </a>
                   )}
-                  {message.file_url && !message.file_type?.startsWith('image/') && (
+                  {message.file_url && message.file_type?.startsWith('audio/') && (
+                    <div className="mb-2">
+                      <AudioPlayer src={message.file_url} isSent={isSent} />
+                    </div>
+                  )}
+                  {message.file_url && !message.file_type?.startsWith('image/') && !message.file_type?.startsWith('audio/') && (
                     <a
                       href={message.file_url}
                       target="_blank"
