@@ -90,8 +90,8 @@ export default function Chat() {
       setSelectedConversationId(convId);
       await fetchConversations();
       toast({
-        title: 'Invite Sent',
-        description: 'Waiting for the user to accept your invite.',
+        title: 'Uitnodiging verstuurd',
+        description: 'Wachten tot de gebruiker de uitnodiging accepteert.',
       });
     }
   };
@@ -118,7 +118,7 @@ export default function Chat() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
       </div>
     );
   }
@@ -172,8 +172,8 @@ export default function Chat() {
             ) : (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
-                  <p className="text-lg mb-2">Welcome to Beacon</p>
-                  <p className="text-sm mb-6">Select a conversation or start a new one</p>
+                  <p className="text-lg mb-2">Welkom bij Beacon</p>
+                  <p className="text-sm mb-6">Selecteer een gesprek of start een nieuwe</p>
                   <a
                     href="https://www.gofundme.com/f/hou-beacon-gratis"
                     target="_blank"
@@ -181,7 +181,7 @@ export default function Chat() {
                     className="inline-flex items-center gap-2 text-xs text-muted-foreground/60 hover:text-primary transition-colors"
                   >
                     <span>♥</span>
-                    <span>Support Beacon</span>
+                    <span>Steun Beacon</span>
                   </a>
                 </div>
               </div>

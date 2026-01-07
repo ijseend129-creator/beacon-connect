@@ -17,7 +17,7 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
   if (!conversation) {
     return (
       <div className="h-16 border-b border-border bg-card flex items-center justify-center">
-        <p className="text-muted-foreground">Select a conversation</p>
+        <p className="text-muted-foreground">Selecteer een gesprek</p>
       </div>
     );
   }
@@ -25,7 +25,7 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
   const getConversationName = () => {
     if (conversation.is_group && conversation.name) return conversation.name;
     const otherParticipant = conversation.participants.find((p) => p.user_id !== user?.id);
-    return otherParticipant?.username || 'Unknown';
+    return otherParticipant?.username || 'Onbekend';
   };
 
   const getInitials = (name: string) => {
@@ -68,7 +68,7 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
         <h3 className="font-semibold text-foreground">{getConversationName()}</h3>
         {conversation.is_group && (
           <p className="text-xs text-muted-foreground">
-            {conversation.participants.length} members
+            {conversation.participants.length} leden
           </p>
         )}
       </div>

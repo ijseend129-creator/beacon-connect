@@ -74,7 +74,7 @@ export function NewChatDialog({ open, onClose, onCreateChat }: NewChatDialogProp
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-card border-border max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-foreground">New Conversation</DialogTitle>
+          <DialogTitle className="text-foreground">Nieuw gesprek</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -82,7 +82,7 @@ export function NewChatDialog({ open, onClose, onCreateChat }: NewChatDialogProp
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search users..."
+              placeholder="Zoek gebruikers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-input border-border"
@@ -97,14 +97,14 @@ export function NewChatDialog({ open, onClose, onCreateChat }: NewChatDialogProp
               onCheckedChange={(checked) => setIsGroup(!!checked)}
             />
             <Label htmlFor="isGroup" className="text-sm text-foreground cursor-pointer">
-              Create a group chat
+              Maak een groepschat
             </Label>
           </div>
 
           {/* Group name input */}
           {isGroup && (
             <Input
-              placeholder="Group name"
+              placeholder="Groepsnaam"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               className="bg-input border-border"
@@ -115,7 +115,7 @@ export function NewChatDialog({ open, onClose, onCreateChat }: NewChatDialogProp
           {selectedUsers.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-primary">
               <Users className="h-4 w-4" />
-              <span>{selectedUsers.length} selected</span>
+              <span>{selectedUsers.length} geselecteerd</span>
             </div>
           )}
 
@@ -123,11 +123,11 @@ export function NewChatDialog({ open, onClose, onCreateChat }: NewChatDialogProp
           <ScrollArea className="h-[200px] border border-border rounded-lg">
             {loading ? (
               <div className="p-4 text-center text-muted-foreground">
-                Loading users...
+                Gebruikers laden...
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">
-                No users found
+                Geen gebruikers gevonden
               </div>
             ) : (
               <div className="p-2 space-y-1">
@@ -163,7 +163,7 @@ export function NewChatDialog({ open, onClose, onCreateChat }: NewChatDialogProp
             }
             className="w-full bg-primary text-primary-foreground hover:bg-beacon-lime-glow"
           >
-            {creating ? 'Sending Invite...' : 'Send Invite'}
+            {creating ? 'Uitnodiging versturen...' : 'Uitnodiging versturen'}
           </Button>
         </div>
       </DialogContent>

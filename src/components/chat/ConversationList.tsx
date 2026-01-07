@@ -31,7 +31,7 @@ export function ConversationList({
     
     // For 1:1 chats, show the other person's name
     const otherParticipant = conv.participants.find((p) => p.user_id !== user?.id);
-    return otherParticipant?.username || 'Unknown';
+    return otherParticipant?.username || 'Onbekend';
   };
 
   const getInitials = (name: string) => {
@@ -80,7 +80,7 @@ export function ConversationList({
                 <span className="font-medium text-sidebar-foreground">Beacon AI</span>
                 <Sparkles className="h-3 w-3 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">Your AI assistant</p>
+              <p className="text-sm text-muted-foreground">Je AI-assistent</p>
             </div>
           </button>
 
@@ -92,8 +92,8 @@ export function ConversationList({
           {conversations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No conversations yet</p>
-              <p className="text-sm">Start a new chat!</p>
+              <p>Nog geen gesprekken</p>
+              <p className="text-sm">Start een nieuwe chat!</p>
             </div>
           ) : (
             conversations.map((conv) => (
@@ -149,7 +149,7 @@ export function ConversationList({
           className="flex items-center justify-center gap-2 text-xs text-muted-foreground/60 hover:text-primary transition-colors"
         >
           <span>♥</span>
-          <span>Support Beacon</span>
+          <span>Steun Beacon</span>
         </a>
       </div>
     </div>

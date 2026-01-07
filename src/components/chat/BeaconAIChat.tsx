@@ -57,7 +57,7 @@ export function BeaconAIChat({ onBack }: BeaconAIChatProps) {
             Beacon AI
             <Sparkles className="h-4 w-4 text-primary" />
           </h2>
-          <p className="text-xs text-muted-foreground">Your AI assistant</p>
+          <p className="text-xs text-muted-foreground">Je AI-assistent</p>
         </div>
         {messages.length > 0 && (
           <Button
@@ -79,10 +79,10 @@ export function BeaconAIChat({ onBack }: BeaconAIChatProps) {
               <Bot className="h-8 w-8 text-primary-foreground" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              Hi! I'm Beacon AI 👋
+              Hoi! Ik ben Beacon AI 👋
             </h3>
             <p className="text-muted-foreground text-sm max-w-sm">
-              I'm here to help you with anything you need. Ask me questions, get recommendations, or just chat!
+              Ik ben hier om je te helpen met alles wat je nodig hebt. Stel me vragen, krijg aanbevelingen, of gewoon een praatje!
             </p>
           </div>
         ) : (
@@ -142,7 +142,7 @@ export function BeaconAIChat({ onBack }: BeaconAIChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask Beacon AI anything..."
+            placeholder="Vraag Beacon AI alles..."
             className="min-h-[44px] max-h-32 resize-none"
             rows={1}
             disabled={isLoading}

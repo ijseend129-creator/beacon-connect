@@ -18,7 +18,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-pulse text-muted-foreground">Loading Beacon...</div>
+      <div className="animate-pulse text-muted-foreground">Beacon laden...</div>
     </div>
   );
 };
