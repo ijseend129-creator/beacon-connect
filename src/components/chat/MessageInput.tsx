@@ -1,11 +1,14 @@
-import { useState, KeyboardEvent, useRef } from 'react';
+import { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, X, Image, FileText } from 'lucide-react';
+import { Send, Paperclip, X, FileText, WifiOff } from 'lucide-react';
+import { EmojiPicker } from './EmojiPicker';
 
 interface MessageInputProps {
   onSend: (content: string, file?: File) => Promise<void>;
   disabled?: boolean;
+  onTyping?: () => void;
+  isOffline?: boolean;
 }
 
 const ALLOWED_TYPES = [
@@ -15,12 +18,13 @@ const ALLOWED_TYPES = [
   'text/plain', 'application/zip'
 ];
 
-export function MessageInput({ onSend, disabled }: MessageInputProps) {
+export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,10 +77,26 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
     }
   };
 
-  const isImage = selectedFile?.type.startsWith('image/');
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    onTyping?.();
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    textareaRef.current?.focus();
+  };
 
   return (
     <div className="p-4 border-t border-border bg-card">
+      {isOffline && (
+        <div className="max-w-3xl mx-auto mb-2">
+          <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-lg text-sm">
+            <WifiOff className="h-4 w-4" />
+            <span>Je bent offline. Berichten worden verzonden wanneer je weer online bent.</span>
+          </div>
+        </div>
+      )}
       {selectedFile && (
         <div className="max-w-3xl mx-auto mb-2">
           <div className="inline-flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
@@ -105,6 +125,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
           onChange={handleFileSelect}
           className="hidden"
         />
+        <EmojiPicker onEmojiSelect={handleEmojiSelect} disabled={disabled || sending} />
         <Button
           variant="ghost"
           size="icon"
@@ -115,8 +136,9 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
           <Paperclip className="h-5 w-5" />
         </Button>
         <Textarea
+          ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="Typ een bericht..."
           disabled={disabled || sending}

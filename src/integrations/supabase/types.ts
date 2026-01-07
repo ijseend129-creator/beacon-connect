@@ -130,18 +130,21 @@ export type Database = {
           conversation_id: string
           id: string
           joined_at: string
+          typing_at: string | null
           user_id: string
         }
         Insert: {
           conversation_id: string
           id?: string
           joined_at?: string
+          typing_at?: string | null
           user_id: string
         }
         Update: {
           conversation_id?: string
           id?: string
           joined_at?: string
+          typing_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -181,6 +184,30 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reads: {
+        Row: {
+          conversation_id: string
+          id: string
+          last_read_at: string
+          last_read_message_id: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          last_read_at?: string
+          last_read_message_id?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          last_read_at?: string
+          last_read_message_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -191,6 +218,7 @@ export type Database = {
           file_url: string | null
           id: string
           sender_id: string
+          status: string
         }
         Insert: {
           content: string
@@ -201,6 +229,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           sender_id: string
+          status?: string
         }
         Update: {
           content?: string
@@ -211,6 +240,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           sender_id?: string
+          status?: string
         }
         Relationships: [
           {
@@ -221,6 +251,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      offline_message_queue: {
+        Row: {
+          client_timestamp: string
+          content: string
+          conversation_id: string
+          created_at: string
+          file_name: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          synced: boolean
+          user_id: string
+        }
+        Insert: {
+          client_timestamp: string
+          content: string
+          conversation_id: string
+          created_at?: string
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          synced?: boolean
+          user_id: string
+        }
+        Update: {
+          client_timestamp?: string
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          synced?: boolean
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
