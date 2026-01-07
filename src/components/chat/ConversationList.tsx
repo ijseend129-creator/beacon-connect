@@ -1,11 +1,12 @@
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Conversation } from '@/hooks/useConversations';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Users, MessageCircle, Bot, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { nl } from 'date-fns/locale';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -14,6 +15,7 @@ interface ConversationListProps {
   onNewChat: () => void;
   onSelectAI: () => void;
   isAISelected: boolean;
+  unreadCounts?: Record<string, number>;
 }
 
 export function ConversationList({
@@ -23,6 +25,7 @@ export function ConversationList({
   onNewChat,
   onSelectAI,
   isAISelected,
+  unreadCounts = {},
 }: ConversationListProps) {
   const { user } = useAuth();
 
@@ -96,46 +99,60 @@ export function ConversationList({
               <p className="text-sm">Start een nieuwe chat!</p>
             </div>
           ) : (
-            conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => onSelect(conv.id)}
-                className={`w-full p-3 rounded-lg flex items-center gap-3 transition-all duration-200 ${
-                  selectedId === conv.id
-                    ? 'bg-sidebar-accent border-l-2 border-primary'
-                    : 'hover:bg-sidebar-accent/50'
-                }`}
-              >
-                <Avatar className="h-12 w-12 bg-secondary">
-                  <AvatarFallback className="bg-secondary text-secondary-foreground">
-                    {conv.is_group ? (
-                      <Users className="h-5 w-5" />
-                    ) : (
-                      getInitials(getConversationName(conv))
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 text-left overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-sidebar-foreground truncate">
-                      {getConversationName(conv)}
-                    </span>
-                    {conv.last_message && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(conv.last_message.created_at), {
-                          addSuffix: false,
-                        })}
-                      </span>
+            conversations.map((conv) => {
+              const unreadCount = unreadCounts[conv.id] || 0;
+              
+              return (
+                <button
+                  key={conv.id}
+                  onClick={() => onSelect(conv.id)}
+                  className={`w-full p-3 rounded-lg flex items-center gap-3 transition-all duration-200 ${
+                    selectedId === conv.id
+                      ? 'bg-sidebar-accent border-l-2 border-primary'
+                      : 'hover:bg-sidebar-accent/50'
+                  }`}
+                >
+                  <div className="relative">
+                    <Avatar className="h-12 w-12 bg-secondary">
+                      <AvatarFallback className="bg-secondary text-secondary-foreground">
+                        {conv.is_group ? (
+                          <Users className="h-5 w-5" />
+                        ) : (
+                          getInitials(getConversationName(conv))
+                        )}
+                      </AvatarFallback>
+                    </Avatar>
+                    {unreadCount > 0 && (
+                      <Badge 
+                        className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center bg-primary text-primary-foreground text-xs"
+                      >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </Badge>
                     )}
                   </div>
-                  {conv.last_message && (
-                    <p className="text-sm text-muted-foreground truncate">
-                      {conv.last_message.content}
-                    </p>
-                  )}
-                </div>
-              </button>
-            ))
+                  <div className="flex-1 text-left overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <span className={`font-medium text-sidebar-foreground truncate ${unreadCount > 0 ? 'font-bold' : ''}`}>
+                        {getConversationName(conv)}
+                      </span>
+                      {conv.last_message && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(conv.last_message.created_at), {
+                            addSuffix: false,
+                            locale: nl,
+                          })}
+                        </span>
+                      )}
+                    </div>
+                    {conv.last_message && (
+                      <p className={`text-sm truncate ${unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                        {conv.last_message.content}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
       </ScrollArea>

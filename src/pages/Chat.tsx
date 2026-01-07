@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConversations } from '@/hooks/useConversations';
 import { useMessages } from '@/hooks/useMessages';
 import { useConversationInvites } from '@/hooks/useConversationInvites';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
+import { useUnreadCount } from '@/hooks/useUnreadCount';
+import { useOfflineQueue } from '@/hooks/useOfflineQueue';
+import { useMessageStatus } from '@/hooks/useMessageStatus';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
@@ -12,6 +16,7 @@ import { NewChatDialog } from '@/components/chat/NewChatDialog';
 import { UserMenu } from '@/components/chat/UserMenu';
 import { BeaconAIChat } from '@/components/chat/BeaconAIChat';
 import { InviteList } from '@/components/chat/InviteList';
+import { TypingIndicator } from '@/components/chat/TypingIndicator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,6 +34,10 @@ export default function Chat() {
   const { conversations, loading: convsLoading, createConversation, fetchConversations } = useConversations();
   const { messages, loading: msgsLoading, sendMessage } = useMessages(selectedConversationId);
   const { invites, acceptInvite, declineInvite } = useConversationInvites();
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator(selectedConversationId);
+  const { unreadCounts, clearUnread, fetchUnreadCounts } = useUnreadCount();
+  const { isOnline, addToQueue, syncQueue } = useOfflineQueue();
+  const { markAsRead } = useMessageStatus(selectedConversationId);
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId) || null;
 
@@ -71,6 +80,13 @@ export default function Chat() {
     }
   }, [selectedConversationId, showBeaconAI]);
 
+  // Clear unread when selecting a conversation
+  useEffect(() => {
+    if (selectedConversationId) {
+      clearUnread(selectedConversationId);
+    }
+  }, [selectedConversationId, clearUnread]);
+
   const handleSelectAI = () => {
     setSelectedConversationId(null);
     setShowBeaconAI(true);
@@ -82,6 +98,7 @@ export default function Chat() {
   const handleSelectConversation = (id: string) => {
     setShowBeaconAI(false);
     setSelectedConversationId(id);
+    clearUnread(id);
   };
 
   const handleCreateChat = async (userIds: string[], name?: string, isGroup?: boolean) => {
@@ -105,9 +122,28 @@ export default function Chat() {
   };
 
   const handleSendMessage = async (content: string, file?: File) => {
+    stopTyping();
+    
+    if (!isOnline && !file) {
+      // Queue message for later if offline (files can't be queued)
+      addToQueue({
+        conversationId: selectedConversationId!,
+        content,
+        clientTimestamp: new Date().toISOString(),
+      });
+      return;
+    }
+    
     await sendMessage(content, file);
     await fetchConversations(); // Refresh to update last message
   };
+
+  const handleMessagesViewed = useCallback(async (messageIds: string[]) => {
+    if (messageIds.length > 0) {
+      await markAsRead(messageIds[messageIds.length - 1]);
+      fetchUnreadCounts();
+    }
+  }, [markAsRead, fetchUnreadCounts]);
 
   const handleBack = () => {
     setShowSidebar(true);
@@ -146,6 +182,7 @@ export default function Chat() {
           onNewChat={() => setShowNewChat(true)}
           onSelectAI={handleSelectAI}
           isAISelected={showBeaconAI}
+          unreadCounts={unreadCounts}
         />
       </div>
 
@@ -166,8 +203,17 @@ export default function Chat() {
             
             {selectedConversation ? (
               <>
-                <MessageList messages={messages} loading={msgsLoading} />
-                <MessageInput onSend={handleSendMessage} />
+                <MessageList 
+                  messages={messages} 
+                  loading={msgsLoading}
+                  onMessagesViewed={handleMessagesViewed}
+                />
+                <TypingIndicator typingUsers={typingUsers} />
+                <MessageInput 
+                  onSend={handleSendMessage}
+                  onTyping={startTyping}
+                  isOffline={!isOnline}
+                />
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center">

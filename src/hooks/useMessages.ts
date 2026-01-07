@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+export type MessageStatus = 'sent' | 'delivered' | 'read';
+
 export interface Message {
   id: string;
   conversation_id: string;
   sender_id: string;
   content: string;
   created_at: string;
+  status: MessageStatus;
   file_url?: string | null;
   file_name?: string | null;
   file_type?: string | null;
@@ -38,6 +41,7 @@ export function useMessages(conversationId: string | null) {
           sender_id,
           content,
           created_at,
+          status,
           file_url,
           file_name,
           file_type,
@@ -55,6 +59,7 @@ export function useMessages(conversationId: string | null) {
           sender_id: msg.sender_id,
           content: msg.content,
           created_at: msg.created_at,
+          status: msg.status as MessageStatus,
           file_url: msg.file_url,
           file_name: msg.file_name,
           file_type: msg.file_type,
@@ -164,6 +169,7 @@ export function useMessages(conversationId: string | null) {
             sender_id: payload.new.sender_id,
             content: payload.new.content,
             created_at: payload.new.created_at,
+            status: (payload.new.status as MessageStatus) || 'sent',
             file_url: payload.new.file_url,
             file_name: payload.new.file_name,
             file_type: payload.new.file_type,

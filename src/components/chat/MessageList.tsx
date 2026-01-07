@@ -1,23 +1,65 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Message } from '@/hooks/useMessages';
+import { Message, MessageStatus } from '@/hooks/useMessages';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { format } from 'date-fns';
-import { FileText, Download } from 'lucide-react';
+import { format, isToday, isYesterday } from 'date-fns';
+import { nl } from 'date-fns/locale';
+import { FileText, Download, Check, CheckCheck } from 'lucide-react';
 
 interface MessageListProps {
   messages: Message[];
   loading: boolean;
+  onMessagesViewed?: (messageIds: string[]) => void;
 }
 
-export function MessageList({ messages, loading }: MessageListProps) {
+function MessageStatusIcon({ status, isSent }: { status: MessageStatus; isSent: boolean }) {
+  if (!isSent) return null;
+  
+  if (status === 'read') {
+    return <CheckCheck className="h-3.5 w-3.5 text-primary" />;
+  }
+  if (status === 'delivered') {
+    return <CheckCheck className="h-3.5 w-3.5 text-muted-foreground" />;
+  }
+  return <Check className="h-3.5 w-3.5 text-muted-foreground" />;
+}
+
+function formatMessageTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  
+  if (isToday(date)) {
+    return format(date, 'HH:mm');
+  } else if (isYesterday(date)) {
+    return `Gisteren ${format(date, 'HH:mm')}`;
+  } else {
+    return format(date, 'd MMM HH:mm', { locale: nl });
+  }
+}
+
+export function MessageList({ messages, loading, onMessagesViewed }: MessageListProps) {
   const { user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const hasNotifiedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Notify parent when messages are viewed
+  useEffect(() => {
+    if (!onMessagesViewed || !user) return;
+
+    const newMessages = messages.filter(
+      msg => msg.sender_id !== user.id && !hasNotifiedRef.current.has(msg.id)
+    );
+
+    if (newMessages.length > 0) {
+      const ids = newMessages.map(m => m.id);
+      ids.forEach(id => hasNotifiedRef.current.add(id));
+      onMessagesViewed(ids);
+    }
+  }, [messages, user, onMessagesViewed]);
 
   const getInitials = (name: string) => {
     return name
@@ -31,7 +73,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading messages...</div>
+        <div className="animate-pulse text-muted-foreground">Berichten laden...</div>
       </div>
     );
   }
@@ -40,8 +82,8 @@ export function MessageList({ messages, loading }: MessageListProps) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center text-muted-foreground">
-          <p className="text-lg mb-2">No messages yet</p>
-          <p className="text-sm">Send a message to start the conversation!</p>
+          <p className="text-lg mb-2">Nog geen berichten</p>
+          <p className="text-sm">Stuur een bericht om te beginnen!</p>
         </div>
       </div>
     );
@@ -92,7 +134,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
                     <a href={message.file_url} target="_blank" rel="noopener noreferrer">
                       <img
                         src={message.file_url}
-                        alt={message.file_name || 'Image'}
+                        alt={message.file_name || 'Afbeelding'}
                         className="max-w-[280px] max-h-[200px] rounded-lg mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity"
                       />
                     </a>
@@ -107,7 +149,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
                       <FileText className="h-8 w-8 text-primary" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{message.file_name}</p>
-                        <p className="text-xs text-muted-foreground">Click to download</p>
+                        <p className="text-xs text-muted-foreground">Klik om te downloaden</p>
                       </div>
                       <Download className="h-4 w-4 text-muted-foreground" />
                     </a>
@@ -116,13 +158,16 @@ export function MessageList({ messages, loading }: MessageListProps) {
                     <p className="break-words">{message.content}</p>
                   )}
                 </div>
-                <p
-                  className={`text-xs text-muted-foreground mt-1 ${
-                    isSent ? 'text-right mr-1' : 'text-left ml-1'
+                <div
+                  className={`flex items-center gap-1 mt-1 ${
+                    isSent ? 'justify-end mr-1' : 'justify-start ml-1'
                   }`}
                 >
-                  {format(new Date(message.created_at), 'HH:mm')}
-                </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatMessageTime(message.created_at)}
+                  </p>
+                  <MessageStatusIcon status={message.status} isSent={isSent} />
+                </div>
               </div>
             </div>
           );
