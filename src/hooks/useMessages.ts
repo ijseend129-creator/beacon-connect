@@ -33,27 +33,37 @@ export function useMessages(conversationId: string | null) {
     }
 
     try {
-      const { data, error } = await supabase
+      // First fetch messages
+      const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select(`
-          id,
-          conversation_id,
-          sender_id,
-          content,
-          created_at,
-          status,
-          file_url,
-          file_name,
-          file_type,
-          profiles!inner(username, avatar_url)
-        `)
+        .select('id, conversation_id, sender_id, content, created_at, status, file_url, file_name, file_type')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (messagesError) throw messagesError;
+
+      if (!messagesData || messagesData.length === 0) {
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get unique sender IDs
+      const senderIds = [...new Set(messagesData.map(m => m.sender_id))];
+
+      // Fetch profiles for all senders
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', senderIds);
+
+      // Create a map of profiles by ID
+      const profilesMap = new Map(
+        (profilesData || []).map(p => [p.id, { username: p.username, avatar_url: p.avatar_url }])
+      );
 
       setMessages(
-        (data || []).map((msg: any) => ({
+        messagesData.map((msg) => ({
           id: msg.id,
           conversation_id: msg.conversation_id,
           sender_id: msg.sender_id,
@@ -63,10 +73,7 @@ export function useMessages(conversationId: string | null) {
           file_url: msg.file_url,
           file_name: msg.file_name,
           file_type: msg.file_type,
-          sender: {
-            username: msg.profiles.username,
-            avatar_url: msg.profiles.avatar_url,
-          },
+          sender: profilesMap.get(msg.sender_id) || { username: 'Onbekend', avatar_url: null },
         }))
       );
     } catch (error) {
