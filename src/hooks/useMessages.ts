@@ -14,6 +14,7 @@ export interface Message {
   file_url?: string | null;
   file_name?: string | null;
   file_type?: string | null;
+  view_once?: boolean;
   sender?: {
     username: string;
     avatar_url: string | null;
@@ -36,7 +37,7 @@ export function useMessages(conversationId: string | null) {
       // First fetch messages
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select('id, conversation_id, sender_id, content, created_at, status, file_url, file_name, file_type')
+        .select('id, conversation_id, sender_id, content, created_at, status, file_url, file_name, file_type, view_once')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
@@ -73,6 +74,7 @@ export function useMessages(conversationId: string | null) {
           file_url: msg.file_url,
           file_name: msg.file_name,
           file_type: msg.file_type,
+          view_once: msg.view_once,
           sender: profilesMap.get(msg.sender_id) || { username: 'Onbekend', avatar_url: null },
         }))
       );
@@ -105,7 +107,7 @@ export function useMessages(conversationId: string | null) {
     return { url: publicUrl, name: file.name, type: file.type };
   };
 
-  const sendMessage = async (content: string, file?: File) => {
+  const sendMessage = async (content: string, file?: File, viewOnce?: boolean) => {
     if (!conversationId || !user || (!content.trim() && !file)) return null;
 
     try {
@@ -125,6 +127,7 @@ export function useMessages(conversationId: string | null) {
           file_url: fileData?.url,
           file_name: fileData?.name,
           file_type: fileData?.type,
+          view_once: viewOnce || false,
         })
         .select()
         .single();
@@ -189,6 +192,7 @@ export function useMessages(conversationId: string | null) {
                   file_url: payload.new.file_url,
                   file_name: payload.new.file_name,
                   file_type: payload.new.file_type,
+                  view_once: payload.new.view_once,
                   sender: profile || undefined,
                 };
                 

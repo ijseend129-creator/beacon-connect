@@ -211,6 +211,35 @@ export type Database = {
         }
         Relationships: []
       }
+      message_views: {
+        Row: {
+          id: string
+          message_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_views_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -222,6 +251,7 @@ export type Database = {
           id: string
           sender_id: string
           status: string
+          view_once: boolean
         }
         Insert: {
           content: string
@@ -233,6 +263,7 @@ export type Database = {
           id?: string
           sender_id: string
           status?: string
+          view_once?: boolean
         }
         Update: {
           content?: string
@@ -244,6 +275,7 @@ export type Database = {
           id?: string
           sender_id?: string
           status?: string
+          view_once?: boolean
         }
         Relationships: [
           {

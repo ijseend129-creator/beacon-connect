@@ -7,6 +7,7 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { FileText, Download, Check, CheckCheck } from 'lucide-react';
 import { AudioPlayer } from './AudioPlayer';
+import { ViewOnceMedia } from './ViewOnceMedia';
 
 interface MessageListProps {
   messages: Message[];
@@ -137,7 +138,22 @@ export function MessageList({ messages, loading, onMessagesViewed }: MessageList
                       : 'message-bubble-received'
                   }`}
                 >
-                  {message.file_url && message.file_type?.startsWith('image/') && (
+                  {/* View Once Media */}
+                  {message.file_url && message.view_once && (message.file_type?.startsWith('image/') || message.file_type?.startsWith('audio/')) && (
+                    <div className="mb-2">
+                      <ViewOnceMedia
+                        messageId={message.id}
+                        fileUrl={message.file_url}
+                        fileType={message.file_type}
+                        fileName={message.file_name}
+                        isSent={isSent}
+                        senderId={message.sender_id}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Regular Image */}
+                  {message.file_url && message.file_type?.startsWith('image/') && !message.view_once && (
                     <a href={message.file_url} target="_blank" rel="noopener noreferrer">
                       <img
                         src={message.file_url}
@@ -146,11 +162,15 @@ export function MessageList({ messages, loading, onMessagesViewed }: MessageList
                       />
                     </a>
                   )}
-                  {message.file_url && message.file_type?.startsWith('audio/') && (
+                  
+                  {/* Regular Audio */}
+                  {message.file_url && message.file_type?.startsWith('audio/') && !message.view_once && (
                     <div className="mb-2">
                       <AudioPlayer src={message.file_url} isSent={isSent} />
                     </div>
                   )}
+                  
+                  {/* Other Files */}
                   {message.file_url && !message.file_type?.startsWith('image/') && !message.file_type?.startsWith('audio/') && (
                     <a
                       href={message.file_url}
