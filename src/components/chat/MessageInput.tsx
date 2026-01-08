@@ -1,12 +1,14 @@
 import { useState, KeyboardEvent, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, X, FileText, WifiOff, Mic, Square } from 'lucide-react';
+import { Send, Paperclip, X, FileText, WifiOff, Mic, Square, EyeOff } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { Toggle } from '@/components/ui/toggle';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface MessageInputProps {
-  onSend: (content: string, file?: File) => Promise<void>;
+  onSend: (content: string, file?: File, viewOnce?: boolean) => Promise<void>;
   disabled?: boolean;
   onTyping?: () => void;
   isOffline?: boolean;
@@ -25,6 +27,7 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
   const [sending, setSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [viewOnce, setViewOnce] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -90,6 +93,7 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
   const clearFile = () => {
     setSelectedFile(null);
     setPreview(null);
+    setViewOnce(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -98,7 +102,7 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
 
     setSending(true);
     try {
-      await onSend(message, selectedFile || undefined);
+      await onSend(message, selectedFile || undefined, selectedFile ? viewOnce : undefined);
       setMessage('');
       clearFile();
     } finally {
@@ -142,6 +146,24 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
               <FileText className="h-6 w-6 text-muted-foreground" />
             )}
             <span className="text-sm truncate max-w-[200px]">{selectedFile.name}</span>
+            
+            {/* View Once Toggle */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle
+                  pressed={viewOnce}
+                  onPressedChange={setViewOnce}
+                  size="sm"
+                  className={`h-8 w-8 ${viewOnce ? 'bg-primary text-primary-foreground' : ''}`}
+                >
+                  <EyeOff className="h-4 w-4" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{viewOnce ? 'Eenmalig bekijken aan' : 'Eenmalig bekijken'}</p>
+              </TooltipContent>
+            </Tooltip>
+            
             <Button
               variant="ghost"
               size="icon"

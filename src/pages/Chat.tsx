@@ -121,7 +121,7 @@ export default function Chat() {
     }
   };
 
-  const handleSendMessage = async (content: string, file?: File) => {
+  const handleSendMessage = async (content: string, file?: File, viewOnce?: boolean) => {
     stopTyping();
     
     if (!isOnline && !file) {
@@ -134,7 +134,7 @@ export default function Chat() {
       return;
     }
     
-    await sendMessage(content, file);
+    await sendMessage(content, file, viewOnce);
     await fetchConversations(); // Refresh to update last message
   };
 
