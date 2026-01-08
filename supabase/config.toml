@@ -1,1 +1,7 @@
 project_id = "etmklcpysqsmcwhopjhz"
+
+[functions.beacon-ai]
+verify_jwt = false
+
+[functions.send-scheduled-messages]
+verify_jwt = false
