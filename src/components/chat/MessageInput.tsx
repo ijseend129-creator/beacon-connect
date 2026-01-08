@@ -1,7 +1,7 @@
 import { useState, KeyboardEvent, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, X, FileText, WifiOff, Mic, Square, EyeOff } from 'lucide-react';
+import { Send, Paperclip, X, FileText, WifiOff, Mic, Square } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Toggle } from '@/components/ui/toggle';
@@ -154,9 +154,9 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
                   pressed={viewOnce}
                   onPressedChange={setViewOnce}
                   size="sm"
-                  className={`h-8 w-8 ${viewOnce ? 'bg-primary text-primary-foreground' : ''}`}
+                  className={`h-8 w-8 font-bold ${viewOnce ? 'bg-primary text-primary-foreground' : ''}`}
                 >
-                  <EyeOff className="h-4 w-4" />
+                  1
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent>

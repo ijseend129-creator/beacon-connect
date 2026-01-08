@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AudioPlayer } from './AudioPlayer';
@@ -93,9 +93,8 @@ export function ViewOnceMedia({
         {fileType.startsWith('audio/') && (
           <AudioPlayer src={fileUrl} isSent={isSent} />
         )}
-        <div className="absolute top-2 right-2 bg-background/80 rounded-full px-2 py-1 flex items-center gap-1">
-          <EyeOff className="h-3 w-3" />
-          <span className="text-xs">1x</span>
+        <div className="absolute top-2 right-2 bg-background/80 rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm">
+          1
         </div>
       </div>
     );
@@ -118,7 +117,7 @@ export function ViewOnceMedia({
         onClick={handleReveal}
         className="w-[200px] h-[120px] bg-muted/50 rounded-lg flex flex-col items-center justify-center gap-2 border border-border hover:bg-muted/70 transition-colors cursor-pointer"
       >
-        <Eye className="h-8 w-8 text-primary" />
+        <span className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">1</span>
         <p className="text-sm text-muted-foreground">Tik om 1x te bekijken</p>
       </button>
     );
@@ -137,9 +136,8 @@ export function ViewOnceMedia({
       {fileType.startsWith('audio/') && (
         <AudioPlayer src={fileUrl} isSent={isSent} />
       )}
-      <div className="absolute top-2 right-2 bg-destructive/80 text-destructive-foreground rounded-full px-2 py-1 flex items-center gap-1 animate-pulse">
-        <EyeOff className="h-3 w-3" />
-        <span className="text-xs">Verdwijnt...</span>
+      <div className="absolute top-2 right-2 bg-destructive/80 text-destructive-foreground rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm animate-pulse">
+        1
       </div>
     </div>
   );
