@@ -121,11 +121,11 @@ export default function Chat() {
     }
   };
 
-  const handleSendMessage = async (content: string, file?: File, viewOnce?: boolean) => {
+  const handleSendMessage = async (content: string, file?: File, viewOnce?: boolean, scheduledAt?: Date) => {
     stopTyping();
     
-    if (!isOnline && !file) {
-      // Queue message for later if offline (files can't be queued)
+    if (!isOnline && !file && !scheduledAt) {
+      // Queue message for later if offline (files and scheduled can't be queued)
       addToQueue({
         conversationId: selectedConversationId!,
         content,
@@ -134,7 +134,15 @@ export default function Chat() {
       return;
     }
     
-    await sendMessage(content, file, viewOnce);
+    const result = await sendMessage(content, file, viewOnce, scheduledAt);
+    
+    if (scheduledAt && result) {
+      toast({
+        title: 'Bericht ingepland',
+        description: `Je bericht wordt verzonden op ${scheduledAt.toLocaleString('nl-NL')}`,
+      });
+    }
+    
     await fetchConversations(); // Refresh to update last message
   };
 

@@ -107,7 +107,7 @@ export function useMessages(conversationId: string | null) {
     return { url: publicUrl, name: file.name, type: file.type };
   };
 
-  const sendMessage = async (content: string, file?: File, viewOnce?: boolean) => {
+  const sendMessage = async (content: string, file?: File, viewOnce?: boolean, scheduledAt?: Date) => {
     if (!conversationId || !user || (!content.trim() && !file)) return null;
 
     try {
@@ -118,6 +118,28 @@ export function useMessages(conversationId: string | null) {
         if (!fileData) return null;
       }
 
+      // If scheduled, save to scheduled_messages instead
+      if (scheduledAt) {
+        const { data, error } = await supabase
+          .from('scheduled_messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_id: user.id,
+            content: content.trim() || (fileData ? fileData.name : ''),
+            file_url: fileData?.url,
+            file_name: fileData?.name,
+            file_type: fileData?.type,
+            view_once: viewOnce || false,
+            scheduled_at: scheduledAt.toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // Regular message
       const { data, error } = await supabase
         .from('messages')
         .insert({

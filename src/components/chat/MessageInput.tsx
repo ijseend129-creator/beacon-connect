@@ -6,9 +6,10 @@ import { EmojiPicker } from './EmojiPicker';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Toggle } from '@/components/ui/toggle';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { SchedulePicker } from './SchedulePicker';
 
 interface MessageInputProps {
-  onSend: (content: string, file?: File, viewOnce?: boolean) => Promise<void>;
+  onSend: (content: string, file?: File, viewOnce?: boolean, scheduledAt?: Date) => Promise<void>;
   disabled?: boolean;
   onTyping?: () => void;
   isOffline?: boolean;
@@ -28,6 +29,7 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [viewOnce, setViewOnce] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -94,6 +96,7 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
     setSelectedFile(null);
     setPreview(null);
     setViewOnce(false);
+    setScheduledAt(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -102,8 +105,9 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
 
     setSending(true);
     try {
-      await onSend(message, selectedFile || undefined, selectedFile ? viewOnce : undefined);
+      await onSend(message, selectedFile || undefined, selectedFile ? viewOnce : undefined, scheduledAt || undefined);
       setMessage('');
+      setScheduledAt(null);
       clearFile();
     } finally {
       setSending(false);
@@ -223,6 +227,11 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
             >
               <Paperclip className="h-5 w-5" />
             </Button>
+            <SchedulePicker 
+              scheduledAt={scheduledAt} 
+              onScheduleChange={setScheduledAt} 
+              disabled={disabled || sending || isOffline}
+            />
             <Textarea
               ref={textareaRef}
               value={message}
