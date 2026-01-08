@@ -8,6 +8,7 @@ import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
 import { useOfflineQueue } from '@/hooks/useOfflineQueue';
 import { useMessageStatus } from '@/hooks/useMessageStatus';
+import { usePolls } from '@/hooks/usePolls';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
@@ -17,12 +18,15 @@ import { UserMenu } from '@/components/chat/UserMenu';
 import { BeaconAIChat } from '@/components/chat/BeaconAIChat';
 import { InviteList } from '@/components/chat/InviteList';
 import { TypingIndicator } from '@/components/chat/TypingIndicator';
+import { PollList } from '@/components/chat/PollList';
+import { CreatePollDialog } from '@/components/chat/CreatePollDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Chat() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showNewChat, setShowNewChat] = useState(false);
+  const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [username, setUsername] = useState<string>();
   const [avatarUrl, setAvatarUrl] = useState<string>();
@@ -38,6 +42,7 @@ export default function Chat() {
   const { unreadCounts, clearUnread, fetchUnreadCounts } = useUnreadCount();
   const { isOnline, addToQueue, syncQueue } = useOfflineQueue();
   const { markAsRead } = useMessageStatus(selectedConversationId);
+  const { polls, createPoll, vote } = usePolls(selectedConversationId);
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId) || null;
 
@@ -212,6 +217,9 @@ export default function Chat() {
             
             {selectedConversation ? (
               <>
+                {selectedConversation.is_group && polls.length > 0 && (
+                  <PollList polls={polls} onVote={vote} />
+                )}
                 <MessageList 
                   messages={messages} 
                   loading={msgsLoading}
@@ -222,6 +230,8 @@ export default function Chat() {
                   onSend={handleSendMessage}
                   onTyping={startTyping}
                   isOffline={!isOnline}
+                  isGroup={selectedConversation.is_group}
+                  onCreatePoll={() => setShowCreatePoll(true)}
                 />
               </>
             ) : (
@@ -250,6 +260,13 @@ export default function Chat() {
         open={showNewChat}
         onClose={() => setShowNewChat(false)}
         onCreateChat={handleCreateChat}
+      />
+
+      {/* Create poll dialog */}
+      <CreatePollDialog
+        open={showCreatePoll}
+        onClose={() => setShowCreatePoll(false)}
+        onCreatePoll={createPoll}
       />
     </div>
   );

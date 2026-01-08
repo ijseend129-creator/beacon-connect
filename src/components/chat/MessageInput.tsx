@@ -1,7 +1,7 @@
 import { useState, KeyboardEvent, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, X, FileText, WifiOff, Mic, Square } from 'lucide-react';
+import { Send, Paperclip, X, FileText, WifiOff, Mic, Square, BarChart3 } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Toggle } from '@/components/ui/toggle';
@@ -13,6 +13,8 @@ interface MessageInputProps {
   disabled?: boolean;
   onTyping?: () => void;
   isOffline?: boolean;
+  isGroup?: boolean;
+  onCreatePoll?: () => void;
 }
 
 const ALLOWED_TYPES = [
@@ -23,7 +25,7 @@ const ALLOWED_TYPES = [
   'audio/webm', 'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/wav'
 ];
 
-export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageInputProps) {
+export function MessageInput({ onSend, disabled, onTyping, isOffline, isGroup, onCreatePoll }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -227,6 +229,17 @@ export function MessageInput({ onSend, disabled, onTyping, isOffline }: MessageI
             >
               <Paperclip className="h-5 w-5" />
             </Button>
+            {isGroup && onCreatePoll && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11 text-muted-foreground hover:text-foreground"
+                onClick={onCreatePoll}
+                disabled={disabled || sending || isOffline}
+              >
+                <BarChart3 className="h-5 w-5" />
+              </Button>
+            )}
             <SchedulePicker 
               scheduledAt={scheduledAt} 
               onScheduleChange={setScheduledAt} 
