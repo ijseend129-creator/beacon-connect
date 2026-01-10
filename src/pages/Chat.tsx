@@ -9,6 +9,7 @@ import { useUnreadCount } from '@/hooks/useUnreadCount';
 import { useOfflineQueue } from '@/hooks/useOfflineQueue';
 import { useMessageStatus } from '@/hooks/useMessageStatus';
 import { usePolls } from '@/hooks/usePolls';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
@@ -35,7 +36,7 @@ export default function Chat() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { conversations, loading: convsLoading, createConversation, fetchConversations } = useConversations();
+  const { conversations, loading: convsLoading, createConversation, fetchConversations, leaveConversation } = useConversations();
   const { messages, loading: msgsLoading, sendMessage } = useMessages(selectedConversationId);
   const { invites, acceptInvite, declineInvite } = useConversationInvites();
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator(selectedConversationId);
@@ -43,6 +44,7 @@ export default function Chat() {
   const { isOnline, addToQueue, syncQueue } = useOfflineQueue();
   const { markAsRead } = useMessageStatus(selectedConversationId);
   const { polls, createPoll, vote } = usePolls(selectedConversationId);
+  const { blockedUserIds, blockUser, unblockUser } = useBlockedUsers();
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId) || null;
 
@@ -158,6 +160,42 @@ export default function Chat() {
     }
   }, [markAsRead, fetchUnreadCounts]);
 
+  const handleBlockUser = async (userId: string) => {
+    const success = await blockUser(userId);
+    if (success) {
+      toast({
+        title: 'Gebruiker geblokkeerd',
+        description: 'Je ontvangt geen berichten meer van deze persoon.',
+      });
+    }
+    return success;
+  };
+
+  const handleUnblockUser = async (userId: string) => {
+    const success = await unblockUser(userId);
+    if (success) {
+      toast({
+        title: 'Gebruiker gedeblokkeerd',
+        description: 'Je kunt weer berichten ontvangen van deze persoon.',
+      });
+    }
+    return success;
+  };
+
+  const handleDeleteConversation = async (conversationId: string) => {
+    const success = await leaveConversation(conversationId);
+    if (success) {
+      if (selectedConversationId === conversationId) {
+        setSelectedConversationId(null);
+      }
+      toast({
+        title: 'Chat verwijderd',
+        description: 'Je hebt het gesprek verlaten.',
+      });
+    }
+    return success;
+  };
+
   const handleBack = () => {
     setShowSidebar(true);
     setSelectedConversationId(null);
@@ -196,6 +234,10 @@ export default function Chat() {
           onSelectAI={handleSelectAI}
           isAISelected={showBeaconAI}
           unreadCounts={unreadCounts}
+          onBlockUser={handleBlockUser}
+          onUnblockUser={handleUnblockUser}
+          onDeleteConversation={handleDeleteConversation}
+          blockedUserIds={blockedUserIds}
         />
       </div>
 
