@@ -147,9 +147,31 @@ export function useConversations() {
     }
   };
 
+  const leaveConversation = async (conversationId: string) => {
+    if (!user) return false;
+
+    try {
+      // Remove user from conversation_participants
+      const { error } = await supabase
+        .from('conversation_participants')
+        .delete()
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Refresh conversations
+      await fetchConversations();
+      return true;
+    } catch (error) {
+      console.error('Error leaving conversation:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchConversations();
   }, [user]);
 
-  return { conversations, loading, fetchConversations, createConversation };
+  return { conversations, loading, fetchConversations, createConversation, leaveConversation };
 }

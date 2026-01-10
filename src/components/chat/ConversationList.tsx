@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Users, MessageCircle, Bot, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { ContactOptionsDialog } from './ContactOptionsDialog';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -16,6 +17,10 @@ interface ConversationListProps {
   onSelectAI: () => void;
   isAISelected: boolean;
   unreadCounts?: Record<string, number>;
+  onBlockUser?: (userId: string) => Promise<boolean>;
+  onUnblockUser?: (userId: string) => Promise<boolean>;
+  onDeleteConversation?: (conversationId: string) => Promise<boolean>;
+  blockedUserIds?: string[];
 }
 
 export function ConversationList({
@@ -26,6 +31,10 @@ export function ConversationList({
   onSelectAI,
   isAISelected,
   unreadCounts = {},
+  onBlockUser,
+  onUnblockUser,
+  onDeleteConversation,
+  blockedUserIds = [],
 }: ConversationListProps) {
   const { user } = useAuth();
 
@@ -106,67 +115,85 @@ export function ConversationList({
             conversations.map((conv) => {
               const unreadCount = unreadCounts[conv.id] || 0;
               const otherParticipant = getOtherParticipant(conv);
+              const isUserBlocked = otherParticipant ? blockedUserIds.includes(otherParticipant.user_id) : false;
               
               return (
-                <button
+                <div
                   key={conv.id}
-                  onClick={() => onSelect(conv.id)}
                   className={`w-full p-3 rounded-lg flex items-center gap-3 transition-all duration-200 ${
                     selectedId === conv.id
                       ? 'bg-sidebar-accent border-l-2 border-primary'
                       : 'hover:bg-sidebar-accent/50'
                   }`}
                 >
-                  <div className="relative">
-                    <Avatar className="h-12 w-12 bg-secondary">
-                      {conv.is_group && conv.avatar_url ? (
-                        <AvatarImage 
-                          src={conv.avatar_url} 
-                          alt={conv.name || 'Groep'} 
-                        />
-                      ) : !conv.is_group && otherParticipant?.avatar_url ? (
-                        <AvatarImage 
-                          src={otherParticipant.avatar_url} 
-                          alt={otherParticipant.username} 
-                        />
-                      ) : null}
-                      <AvatarFallback className="bg-secondary text-secondary-foreground">
-                        {conv.is_group ? (
-                          <Users className="h-5 w-5" />
-                        ) : (
-                          getInitials(getConversationName(conv))
-                        )}
-                      </AvatarFallback>
-                    </Avatar>
-                    {unreadCount > 0 && (
-                      <Badge 
-                        className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center bg-primary text-primary-foreground text-xs"
-                      >
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex-1 text-left overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <span className={`font-medium text-sidebar-foreground truncate ${unreadCount > 0 ? 'font-bold' : ''}`}>
-                        {getConversationName(conv)}
-                      </span>
-                      {conv.last_message && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(conv.last_message.created_at), {
-                            addSuffix: false,
-                            locale: nl,
-                          })}
-                        </span>
+                  <button
+                    onClick={() => onSelect(conv.id)}
+                    className="flex items-center gap-3 flex-1 text-left overflow-hidden"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-12 w-12 bg-secondary">
+                        {conv.is_group && conv.avatar_url ? (
+                          <AvatarImage 
+                            src={conv.avatar_url} 
+                            alt={conv.name || 'Groep'} 
+                          />
+                        ) : !conv.is_group && otherParticipant?.avatar_url ? (
+                          <AvatarImage 
+                            src={otherParticipant.avatar_url} 
+                            alt={otherParticipant.username} 
+                          />
+                        ) : null}
+                        <AvatarFallback className="bg-secondary text-secondary-foreground">
+                          {conv.is_group ? (
+                            <Users className="h-5 w-5" />
+                          ) : (
+                            getInitials(getConversationName(conv))
+                          )}
+                        </AvatarFallback>
+                      </Avatar>
+                      {unreadCount > 0 && (
+                        <Badge 
+                          className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center bg-primary text-primary-foreground text-xs"
+                        >
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </Badge>
                       )}
                     </div>
-                    {conv.last_message && (
-                      <p className={`text-sm truncate ${unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                        {conv.last_message.content}
-                      </p>
-                    )}
-                  </div>
-                </button>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <span className={`font-medium text-sidebar-foreground truncate ${unreadCount > 0 ? 'font-bold' : ''}`}>
+                          {getConversationName(conv)}
+                          {isUserBlocked && <span className="text-xs text-destructive ml-2">(geblokkeerd)</span>}
+                        </span>
+                        {conv.last_message && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(conv.last_message.created_at), {
+                              addSuffix: false,
+                              locale: nl,
+                            })}
+                          </span>
+                        )}
+                      </div>
+                      {conv.last_message && (
+                        <p className={`text-sm truncate ${unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                          {conv.last_message.content}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                  
+                  {/* Contact options for 1:1 chats */}
+                  {!conv.is_group && otherParticipant && onBlockUser && onUnblockUser && onDeleteConversation && (
+                    <ContactOptionsDialog
+                      userId={otherParticipant.user_id}
+                      username={otherParticipant.username}
+                      isBlocked={isUserBlocked}
+                      onBlock={async () => { await onBlockUser(otherParticipant.user_id); }}
+                      onUnblock={async () => { await onUnblockUser(otherParticipant.user_id); }}
+                      onDelete={async () => { await onDeleteConversation(conv.id); }}
+                    />
+                  )}
+                </div>
               );
             })
           )}
