@@ -51,11 +51,18 @@ export function useConversations() {
           // Get participants
           const { data: participants } = await supabase
             .from('conversation_participants')
-            .select(`
-              user_id,
-              profiles!inner(username, avatar_url)
-            `)
+            .select('user_id')
             .eq('conversation_id', conv.id);
+
+          // Get profiles for all participants
+          const userIds = (participants || []).map(p => p.user_id);
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, username, avatar_url')
+            .in('id', userIds);
+
+          // Map profiles to participants
+          const profileMap = new Map((profiles || []).map(p => [p.id, p]));
 
           // Get last message
           const { data: messages } = await supabase
@@ -67,11 +74,14 @@ export function useConversations() {
 
           return {
             ...conv,
-            participants: (participants || []).map((p: any) => ({
-              user_id: p.user_id,
-              username: p.profiles.username,
-              avatar_url: p.profiles.avatar_url,
-            })),
+            participants: (participants || []).map((p) => {
+              const profile = profileMap.get(p.user_id);
+              return {
+                user_id: p.user_id,
+                username: profile?.username || 'Onbekend',
+                avatar_url: profile?.avatar_url || null,
+              };
+            }),
             last_message: messages?.[0],
           };
         })
