@@ -107,7 +107,13 @@ export function useMessages(conversationId: string | null) {
     return { url: publicUrl, name: file.name, type: file.type };
   };
 
-  const sendMessage = async (content: string, file?: File, viewOnce?: boolean, scheduledAt?: Date) => {
+  const sendMessage = async (
+    content: string, 
+    file?: File, 
+    viewOnce?: boolean, 
+    scheduledAt?: Date,
+    onMessageSent?: () => void
+  ) => {
     if (!conversationId || !user || (!content.trim() && !file)) return null;
 
     try {
@@ -161,6 +167,11 @@ export function useMessages(conversationId: string | null) {
         .from('conversations')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversationId);
+
+      // Call callback for achievement tracking
+      if (onMessageSent) {
+        onMessageSent();
+      }
 
       return data;
     } catch (error) {
