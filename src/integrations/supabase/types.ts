@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          key: string
+          name: string
+          points: number
+          requirement_value: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          key: string
+          name: string
+          points?: number
+          requirement_value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          key?: string
+          name?: string
+          points?: number
+          requirement_value?: number
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -532,6 +568,77 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_stats: {
+        Row: {
+          current_streak: number
+          files_sent: number
+          groups_created: number
+          id: string
+          last_active_date: string | null
+          longest_streak: number
+          messages_sent: number
+          polls_created: number
+          updated_at: string
+          user_id: string
+          voice_messages_sent: number
+        }
+        Insert: {
+          current_streak?: number
+          files_sent?: number
+          groups_created?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          messages_sent?: number
+          polls_created?: number
+          updated_at?: string
+          user_id: string
+          voice_messages_sent?: number
+        }
+        Update: {
+          current_streak?: number
+          files_sent?: number
+          groups_created?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          messages_sent?: number
+          polls_created?: number
+          updated_at?: string
+          user_id?: string
+          voice_messages_sent?: number
+        }
+        Relationships: []
       }
     }
     Views: {

@@ -10,6 +10,7 @@ import { useOfflineQueue } from '@/hooks/useOfflineQueue';
 import { useMessageStatus } from '@/hooks/useMessageStatus';
 import { usePolls } from '@/hooks/usePolls';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
+import { useAchievements } from '@/hooks/useAchievements';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
@@ -21,6 +22,7 @@ import { InviteList } from '@/components/chat/InviteList';
 import { TypingIndicator } from '@/components/chat/TypingIndicator';
 import { PollList } from '@/components/chat/PollList';
 import { CreatePollDialog } from '@/components/chat/CreatePollDialog';
+import { AchievementsDialog } from '@/components/chat/AchievementsDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,6 +30,7 @@ export default function Chat() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showNewChat, setShowNewChat] = useState(false);
   const [showCreatePoll, setShowCreatePoll] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [username, setUsername] = useState<string>();
   const [avatarUrl, setAvatarUrl] = useState<string>();
@@ -45,6 +48,7 @@ export default function Chat() {
   const { markAsRead } = useMessageStatus(selectedConversationId);
   const { polls, createPoll, vote } = usePolls(selectedConversationId);
   const { blockedUserIds, blockUser, unblockUser } = useBlockedUsers();
+  const { updateStats } = useAchievements();
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId) || null;
 
@@ -141,7 +145,17 @@ export default function Chat() {
       return;
     }
     
-    const result = await sendMessage(content, file, viewOnce, scheduledAt);
+    const result = await sendMessage(content, file, viewOnce, scheduledAt, () => {
+      // Track achievements
+      updateStats('messages_sent');
+      if (file) {
+        if (file.type.startsWith('audio/')) {
+          updateStats('voice_messages_sent');
+        } else {
+          updateStats('files_sent');
+        }
+      }
+    });
     
     if (scheduledAt && result) {
       toast({
@@ -220,7 +234,12 @@ export default function Chat() {
           showSidebar ? 'flex' : 'hidden'
         } md:flex flex-col w-full md:w-80 lg:w-96 flex-shrink-0`}
       >
-        <UserMenu username={username} avatarUrl={avatarUrl} onProfileUpdate={handleProfileUpdate} />
+        <UserMenu 
+          username={username} 
+          avatarUrl={avatarUrl} 
+          onProfileUpdate={handleProfileUpdate}
+          onOpenAchievements={() => setShowAchievements(true)}
+        />
         <InviteList
           invites={invites}
           onAccept={handleAcceptInvite}
@@ -303,12 +322,17 @@ export default function Chat() {
         onClose={() => setShowNewChat(false)}
         onCreateChat={handleCreateChat}
       />
-
       {/* Create poll dialog */}
       <CreatePollDialog
         open={showCreatePoll}
         onClose={() => setShowCreatePoll(false)}
         onCreatePoll={createPoll}
+      />
+
+      {/* Achievements dialog */}
+      <AchievementsDialog
+        open={showAchievements}
+        onClose={() => setShowAchievements(false)}
       />
     </div>
   );
