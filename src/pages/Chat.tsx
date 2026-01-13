@@ -11,6 +11,7 @@ import { useMessageStatus } from '@/hooks/useMessageStatus';
 import { usePolls } from '@/hooks/usePolls';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { useAchievements } from '@/hooks/useAchievements';
+import { useStatuses } from '@/hooks/useStatuses';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
@@ -23,6 +24,10 @@ import { TypingIndicator } from '@/components/chat/TypingIndicator';
 import { PollList } from '@/components/chat/PollList';
 import { CreatePollDialog } from '@/components/chat/CreatePollDialog';
 import { AchievementsDialog } from '@/components/chat/AchievementsDialog';
+import { StatusBar } from '@/components/chat/StatusBar';
+import { CreateStatusDialog } from '@/components/chat/CreateStatusDialog';
+import { StatusViewer } from '@/components/chat/StatusViewer';
+import { StatusViewsList } from '@/components/chat/StatusViewsList';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,6 +40,12 @@ export default function Chat() {
   const [username, setUsername] = useState<string>();
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [showBeaconAI, setShowBeaconAI] = useState(false);
+  const [showCreateStatus, setShowCreateStatus] = useState(false);
+  const [showStatusViewer, setShowStatusViewer] = useState(false);
+  const [viewingStatuses, setViewingStatuses] = useState<any[]>([]);
+  const [isViewingOwnStatus, setIsViewingOwnStatus] = useState(false);
+  const [showStatusViews, setShowStatusViews] = useState(false);
+  const [viewingStatusId, setViewingStatusId] = useState<string | null>(null);
 
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -49,6 +60,7 @@ export default function Chat() {
   const { polls, createPoll, vote } = usePolls(selectedConversationId);
   const { blockedUserIds, blockUser, unblockUser } = useBlockedUsers();
   const { updateStats } = useAchievements();
+  const { myStatuses, groupedStatuses, createStatus, deleteStatus, markAsViewed, voteOnPoll, getStatusViews } = useStatuses();
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId) || null;
 
@@ -216,6 +228,26 @@ export default function Chat() {
     setShowBeaconAI(false);
   };
 
+  const handleViewStatus = (userId: string) => {
+    const group = groupedStatuses.find(g => g.user_id === userId);
+    if (group) {
+      setViewingStatuses(group.statuses);
+      setIsViewingOwnStatus(false);
+      setShowStatusViewer(true);
+    }
+  };
+
+  const handleViewMyStatus = () => {
+    setViewingStatuses(myStatuses);
+    setIsViewingOwnStatus(true);
+    setShowStatusViewer(true);
+  };
+
+  const handleViewStatusViews = (statusId: string) => {
+    setViewingStatusId(statusId);
+    setShowStatusViews(true);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -244,6 +276,14 @@ export default function Chat() {
           invites={invites}
           onAccept={handleAcceptInvite}
           onDecline={declineInvite}
+        />
+        <StatusBar
+          myStatuses={myStatuses}
+          groupedStatuses={groupedStatuses}
+          onAddStatus={() => setShowCreateStatus(true)}
+          onViewStatus={handleViewStatus}
+          onViewMyStatus={handleViewMyStatus}
+          userProfile={{ username, avatar_url: avatarUrl }}
         />
         <ConversationList
           conversations={conversations}
@@ -333,6 +373,29 @@ export default function Chat() {
       <AchievementsDialog
         open={showAchievements}
         onClose={() => setShowAchievements(false)}
+      />
+
+      {/* Status dialogs */}
+      <CreateStatusDialog
+        open={showCreateStatus}
+        onClose={() => setShowCreateStatus(false)}
+        onCreateStatus={createStatus}
+      />
+      <StatusViewer
+        open={showStatusViewer}
+        onClose={() => setShowStatusViewer(false)}
+        statuses={viewingStatuses}
+        isOwn={isViewingOwnStatus}
+        onMarkViewed={markAsViewed}
+        onDelete={isViewingOwnStatus ? deleteStatus : undefined}
+        onVotePoll={voteOnPoll}
+        onViewViews={isViewingOwnStatus ? handleViewStatusViews : undefined}
+      />
+      <StatusViewsList
+        open={showStatusViews}
+        onClose={() => setShowStatusViews(false)}
+        statusId={viewingStatusId}
+        getViews={getStatusViews}
       />
     </div>
   );
