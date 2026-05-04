@@ -3,6 +3,7 @@ import { Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AudioPlayer } from './AudioPlayer';
+import { useSignedUrl } from '@/hooks/useSignedUrl';
 
 interface ViewOnceMediaProps {
   messageId: string;
@@ -25,6 +26,7 @@ export function ViewOnceMedia({
   const [viewed, setViewed] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const signedUrl = useSignedUrl(fileUrl);
 
   // Check if already viewed
   useEffect(() => {
@@ -85,13 +87,13 @@ export function ViewOnceMedia({
       <div className="relative">
         {fileType.startsWith('image/') && (
           <img
-            src={fileUrl}
+            src={signedUrl || ""}
             alt={fileName || 'Afbeelding'}
             className="max-w-[280px] max-h-[200px] rounded-lg object-cover"
           />
         )}
         {fileType.startsWith('audio/') && (
-          <AudioPlayer src={fileUrl} isSent={isSent} />
+          <AudioPlayer src={signedUrl || ""} isSent={isSent} />
         )}
         <div className="absolute top-2 right-2 bg-background/80 rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm">
           1
@@ -128,13 +130,13 @@ export function ViewOnceMedia({
     <div className="relative">
       {fileType.startsWith('image/') && (
         <img
-          src={fileUrl}
+          src={signedUrl || ""}
           alt={fileName || 'Afbeelding'}
           className="max-w-[280px] max-h-[200px] rounded-lg object-cover"
         />
       )}
       {fileType.startsWith('audio/') && (
-        <AudioPlayer src={fileUrl} isSent={isSent} />
+        <AudioPlayer src={signedUrl || ""} isSent={isSent} />
       )}
       <div className="absolute top-2 right-2 bg-destructive/80 text-destructive-foreground rounded-full h-6 w-6 flex items-center justify-center font-bold text-sm animate-pulse">
         1

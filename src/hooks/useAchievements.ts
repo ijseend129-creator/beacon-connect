@@ -252,15 +252,16 @@ export function useAchievements(userId?: string) {
         newStreak = 1;
       }
 
+      const updates: Record<string, string | number> = {
+        [statKey]: (currentStats[statKey] as number) + 1,
+        current_streak: newStreak,
+        longest_streak: longestStreak,
+        last_active_date: today,
+        updated_at: new Date().toISOString(),
+      };
       const { data } = await supabase
         .from('user_stats')
-        .update({
-          [statKey]: (currentStats[statKey] as number) + 1,
-          current_streak: newStreak,
-          longest_streak: longestStreak,
-          last_active_date: today,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updates as never)
         .eq('user_id', user.id)
         .select()
         .single();

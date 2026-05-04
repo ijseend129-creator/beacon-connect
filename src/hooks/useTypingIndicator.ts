@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export function useTypingIndicator(conversationId: string | null) {
   const [typingUsers, setTypingUsers] = useState<{ userId: string; username: string }[]>([]);
   const { user } = useAuth();
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Update typing status
   const setTyping = useCallback(async (isTyping: boolean) => {

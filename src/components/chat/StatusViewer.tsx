@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { useSignedUrl } from '@/hooks/useSignedUrl';
 
 interface Status {
   id: string;
@@ -58,6 +59,7 @@ export function StatusViewer({
   const [isPaused, setIsPaused] = useState(false);
 
   const currentStatus = statuses[currentIndex];
+  const signedMediaUrl = useSignedUrl(currentStatus?.media_url);
 
   const goToNext = useCallback(() => {
     if (currentIndex < statuses.length - 1) {
@@ -266,11 +268,13 @@ export function StatusViewer({
         >
           {currentStatus.media_type === 'image' && currentStatus.media_url && (
             <div className="relative w-full">
-              <img
-                src={currentStatus.media_url}
-                alt=""
-                className="w-full max-h-[400px] object-contain"
-              />
+              {signedMediaUrl && (
+                <img
+                  src={signedMediaUrl}
+                  alt=""
+                  className="w-full max-h-[400px] object-contain"
+                />
+              )}
               {currentStatus.content && (
                 <div className="absolute bottom-4 left-4 right-4 bg-black/50 rounded-lg p-3">
                   <p className="text-white text-center">{currentStatus.content}</p>
@@ -281,12 +285,14 @@ export function StatusViewer({
 
           {currentStatus.media_type === 'audio' && currentStatus.media_url && (
             <div className="w-full space-y-4">
-              <audio
-                src={currentStatus.media_url}
-                controls
-                autoPlay
-                className="w-full"
-              />
+              {signedMediaUrl && (
+                <audio
+                  src={signedMediaUrl}
+                  controls
+                  autoPlay
+                  className="w-full"
+                />
+              )}
               {currentStatus.content && (
                 <p className="text-white text-center text-xl">{currentStatus.content}</p>
               )}
