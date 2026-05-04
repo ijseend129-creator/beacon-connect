@@ -8,6 +8,7 @@ import { nl } from 'date-fns/locale';
 import { FileText, Download, Check, CheckCheck } from 'lucide-react';
 import { AudioPlayer } from './AudioPlayer';
 import { ViewOnceMedia } from './ViewOnceMedia';
+import { SignedImage, SignedAudio, SignedDownloadLink } from './SignedMedia';
 
 interface MessageListProps {
   messages: Message[];
@@ -154,28 +155,25 @@ export function MessageList({ messages, loading, onMessagesViewed }: MessageList
                   
                   {/* Regular Image */}
                   {message.file_url && message.file_type?.startsWith('image/') && !message.view_once && (
-                    <a href={message.file_url} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={message.file_url}
-                        alt={message.file_name || 'Afbeelding'}
-                        className="max-w-[280px] max-h-[200px] rounded-lg mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                      />
-                    </a>
+                    <SignedImage
+                      src={message.file_url}
+                      alt={message.file_name || 'Afbeelding'}
+                      className="max-w-[280px] max-h-[200px] rounded-lg mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      asLink
+                    />
                   )}
                   
                   {/* Regular Audio */}
                   {message.file_url && message.file_type?.startsWith('audio/') && !message.view_once && (
                     <div className="mb-2">
-                      <AudioPlayer src={message.file_url} isSent={isSent} />
+                      <SignedAudio src={message.file_url} isSent={isSent} />
                     </div>
                   )}
                   
                   {/* Other Files */}
                   {message.file_url && !message.file_type?.startsWith('image/') && !message.file_type?.startsWith('audio/') && (
-                    <a
-                      href={message.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <SignedDownloadLink
+                      src={message.file_url}
                       className="flex items-center gap-2 p-2 bg-background/50 rounded-lg mb-2 hover:bg-background/70 transition-colors"
                     >
                       <FileText className="h-8 w-8 text-primary" />
@@ -184,7 +182,7 @@ export function MessageList({ messages, loading, onMessagesViewed }: MessageList
                         <p className="text-xs text-muted-foreground">Klik om te downloaden</p>
                       </div>
                       <Download className="h-4 w-4 text-muted-foreground" />
-                    </a>
+                    </SignedDownloadLink>
                   )}
                   {message.content && (!message.file_url || message.content !== message.file_name) && (
                     <p className="break-words">{message.content}</p>

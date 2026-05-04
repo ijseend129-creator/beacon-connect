@@ -3,6 +3,7 @@ import { Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AudioPlayer } from './AudioPlayer';
+import { useSignedUrl } from '@/hooks/useSignedUrl';
 
 interface ViewOnceMediaProps {
   messageId: string;
@@ -25,6 +26,7 @@ export function ViewOnceMedia({
   const [viewed, setViewed] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const signedUrl = useSignedUrl(fileUrl);
 
   // Check if already viewed
   useEffect(() => {
