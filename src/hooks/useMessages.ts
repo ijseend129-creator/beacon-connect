@@ -89,22 +89,19 @@ export function useMessages(conversationId: string | null) {
     if (!user) return null;
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    const path = `${user.id}/${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from('chat-attachments')
-      .upload(fileName, file);
+      .upload(path, file);
 
     if (uploadError) {
       console.error('Error uploading file:', uploadError);
       return null;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('chat-attachments')
-      .getPublicUrl(fileName);
-
-    return { url: publicUrl, name: file.name, type: file.type };
+    // Store the storage path; consumers will sign on demand.
+    return { url: path, name: file.name, type: file.type };
   };
 
   const sendMessage = async (

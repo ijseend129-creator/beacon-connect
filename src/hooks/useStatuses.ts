@@ -156,22 +156,18 @@ export function useStatuses() {
     try {
       let mediaUrl: string | null = null;
 
-      // Upload media if provided
+      // Upload media if provided. Store the storage path; consumers sign on demand.
       if (data.mediaFile) {
         const fileExt = data.mediaFile.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        
+        const path = `${user.id}/${Date.now()}.${fileExt}`;
+
         const { error: uploadError } = await supabase.storage
           .from('chat-attachments')
-          .upload(fileName, data.mediaFile);
+          .upload(path, data.mediaFile);
 
         if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
-          .from('chat-attachments')
-          .getPublicUrl(fileName);
-
-        mediaUrl = urlData.publicUrl;
+        mediaUrl = path;
       }
 
       const { error } = await supabase.from('statuses').insert({
